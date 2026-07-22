@@ -203,7 +203,16 @@ export async function POST(
     // 11. Upsert Module documents
     // ------------------------------------------------------------------
 
-    // First pass: upsert all modules without import refs (we need _ids first)
+    // First: Prune any stale modules that were deleted or renamed in the repository
+    const existingModules = await Module.find({ repoId: repo._id }).select("path").lean();
+    const newPaths = new Set(parseResult.modules.map((mod) => mod.path));
+    const pathsToDelete = existingModules.map((m) => m.path).filter((path) => !newPaths.has(path));
+
+    if (pathsToDelete.length > 0) {
+      await Module.deleteMany({ repoId: repo._id, path: { $in: pathsToDelete } });
+    }
+
+    // Second: upsert all modules without import refs (we need _ids first)
     const upsertOps = parseResult.modules.map((mod) => ({
       updateOne: {
         filter: { repoId: repo._id, path: mod.path },

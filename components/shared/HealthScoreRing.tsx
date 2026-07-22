@@ -32,15 +32,15 @@ interface HealthScoreRingProps {
  * Note: the ring shows health (higher = better), so 100 is green and 0 is red.
  */
 function scoreToColor(score: number): string {
-  if (score >= 75) return "#3DDC97"; // primary — healthy
-  if (score >= 50) return "#F2B84B"; // warning — moderate
-  return "#F0576B"; // danger — critical
+  if (score >= 75) return "var(--primary, #3DDC97)"; // primary — healthy
+  if (score >= 50) return "var(--warning, #F2B84B)"; // warning — moderate
+  return "var(--danger, #F0576B)"; // danger — critical
 }
 
 function scoreFontColor(score: number): string {
-  if (score >= 75) return "#3DDC97";
-  if (score >= 50) return "#F2B84B";
-  return "#F0576B";
+  if (score >= 75) return "var(--primary, #3DDC97)";
+  if (score >= 50) return "var(--warning, #F2B84B)";
+  return "var(--danger, #F0576B)";
 }
 
 // ---------------------------------------------------------------------------

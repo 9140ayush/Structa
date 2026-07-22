@@ -219,12 +219,20 @@ git tag -a v0.2.0 -m "Phase 2 - Parsing Pipeline"
 
 ## Issues
 
-* **Bugs Found (Phase 2)**:
+* **Bugs Found (Phase 2 & Recheck)**:
   * `ZodError` in this version of Zod exposes `.issues` not `.errors`. Two occurrences required fixing (actions/repos.ts and sync route).
   * Removed `Check`, `Lock`, `Globe`, `ExternalLink`, `ChevronRight` icons from dashboard page imports but `Check` was still used in the modal success state — restored.
   * Unused `FileContent` import in `lib/parser.ts` caused ESLint warning — removed.
-  * Several Prettier formatting differences between generated code and project config — fixed with `--write`.
-* **Fixes Applied**: All issues resolved before tagging.
+  * Folder nodes were omitted from `buildImportGraph` input in `parseRepository`, preventing folders from being stored in the `Module` collection in MongoDB.
+  * The sync endpoint (`POST /api/repos/[repoId]/sync`) did not delete or prune stale modules from the database when files/folders were deleted or renamed in the repo.
+  * `HealthScoreRing` used hardcoded color hex values instead of CSS variables (`var(--primary)`, etc.), violating theme-switching constraints in `design.md`.
+  * Several Prettier formatting differences between generated code and project config.
+* **Fixes Applied**:
+  * Restored/adapted all Zod and icon imports.
+  * Updated `lib/parser.ts` to accept all tree nodes, filtering `knownPaths` to files and adding folder nodes with zeroed complexity metadata to the final graph.
+  * Implemented a pruning query in the sync Route Handler that deletes existing modules not present in the new sync payload before running upserts.
+  * Configured `HealthScoreRing` to return CSS variables (e.g. `var(--primary, #3DDC97)`) for adaptive styling in light/dark modes.
+  * Auto-formatted and fixed style warnings with Prettier/ESLint.
 * **Remaining Issues**: None.
 
 ---

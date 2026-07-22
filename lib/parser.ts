@@ -220,11 +220,13 @@ export function buildImportGraph(
   contents: Map<string, string>,
   aliases: Record<string, string> = {},
 ): { edges: ModuleEdge[]; moduleMap: Map<string, ParsedModule> } {
-  const knownPaths = new Set(files.map((f) => f.path));
+  const knownPaths = new Set(files.filter((f) => f.type === "file").map((f) => f.path));
   const edges: ModuleEdge[] = [];
   const moduleMap = new Map<string, ParsedModule>();
 
   for (const file of files) {
+    if (file.type === "folder") continue;
+
     const content = contents.get(file.path) ?? "";
     const loc = content.split("\n").length;
     const complexityScore = Math.min(loc / 50, 10);
@@ -286,9 +288,8 @@ export function parseRepository(
   aliases: Record<string, string> = {},
 ): ParseResult {
   const nodes = buildFileTree(gitTree);
-  const fileNodes = nodes.filter((n) => n.type === "file");
 
-  const { edges, moduleMap } = buildImportGraph(fileNodes, contents, aliases);
+  const { edges, moduleMap } = buildImportGraph(nodes, contents, aliases);
 
   return {
     nodes,
