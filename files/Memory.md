@@ -11,21 +11,32 @@ This file is the single source of truth for **where things stand** — never for
 * **Task Numbers**: Tasks 1 through 10
 * **Task Titles**:
   * Task 1: Graph Data Types & 3D Layout Engine (`types/graph.ts`, `lib/layout.ts`)
-  * Task 2 & 3: Server-side Graph API (`GET /api/repos/[repoId]/graph`)
+  * Task 2 & 3: Server-side Graph API & Force-directed Layout (`GET /api/repos/[repoId]/graph`)
   * Task 4, 5, 6, 8: R3F Visualization Components (`DependencyGraphScene.tsx`, `Node.tsx`, `Edge.tsx`)
   * Task 7: Dynamic Canvas Loading & Skeleton (`GraphCanvasWrapper.tsx`, `GraphSkeleton.tsx`)
-  * Task 9: 3D Map Page & Framer Motion UI (`repos/[repoId]/page.tsx`, `use-graph-data.ts`)
-  * Task 10: Validation & Tag `v0.3.0`
+  * Task 9: 3D Map Page & Framer Motion UI Shell (`repos/[repoId]/page.tsx`, `use-graph-data.ts`)
+  * Task 10: Validation, Build, Commit & Tag `v0.3.0`
 
 ---
 
 ## Change Summary (Phase 3)
 
-* **Objective**: Build a high-performance, explorable 3D dependency graph with React Three Fiber, Drei, and Framer Motion based on server-side force-directed layout computation.
+* **Objective**: Build a high-performance, explorable 3D dependency graph with React Three Fiber, Drei, and Framer Motion powered by a server-computed force-directed layout engine.
 * **Reason for Implementation**: Core differentiator of Structa — visual 3D navigation of codebase architecture.
-* **What was Completed (Task 1)**:
-  * Expanded `types/graph.ts` with 3D spatial properties (`x`, `y`, `z`), connection counters (`importsCount`, `importedByCount`), LOD metadata, camera target, and selection state.
+* **What was Completed**:
+  * Extended `types/graph.ts` with 3D spatial properties (`x`, `y`, `z`), node connectivity metrics (`importsCount`, `importedByCount`), LOD metadata, camera target, and interaction state types.
   * Implemented `lib/layout.ts`: deterministic 3D Coulomb-Hooke force-directed simulation engine with central gravity, folder clustering, and LOD thresholding (>500 nodes).
+  * Implemented `GET /api/repos/[repoId]/graph`: authenticated, Zod-validated Route Handler that queries `Module` documents from MongoDB, invokes `computeGraphLayout`, and returns JSON graph payloads.
+  * Implemented `hooks/use-graph-data.ts`: custom hook managing 3D graph fetching, node selection, hover states, and search path filtering.
+  * Implemented `components/three/Node.tsx`: R3F node rendering spheres for files and rounded boxes for folders, sizing geometries by LOC, applying complexity heatmap gradient (`#3DDC97` -> `#F2B84B` -> `#F0576B`), emissive hover/selection glow, Drei `<Html>` labels, and LOD geometry reduction.
+  * Implemented `components/three/Edge.tsx`: 3D edge lines in Ion Blue (`#7C9CFF`) with 40% resting opacity, 100% active selection glow (`#3DDC97`), and R3F `useFrame` animated directional particle flow.
+  * Implemented `components/three/DependencyGraphScene.tsx`: R3F Canvas container with near-black void background (`#0A0C10`), depth fog, starfield drift, OrbitControls damping, and camera fly-to-node damped lerp animation.
+  * Implemented `components/three/GraphSkeleton.tsx` & `GraphCanvasWrapper.tsx`: dynamic import wrapper (`next/dynamic`, `ssr: false`) with radar grid loading fallback per `Rules.md` §2.
+  * Implemented `app/(dashboard)/repos/[repoId]/page.tsx`: 3D Map viewport shell with top header, module search, sync trigger, and Framer Motion spring drawer (`motion-spring-panel`) for selected module metadata and dependency navigation.
+* **Important Decisions Taken**:
+  * Kept R3F canvas isolated inside dynamically imported Client Components (`ssr: false`), preventing any SSR/prerender bundle errors in Next.js App Router.
+  * Preserved dark void background (`#0A0C10`) for 3D canvas per `design.md` §8 even when chrome is in light mode to maintain node/edge contrast.
+  * Deferred effect execution in `useGraphData` with `Promise.resolve().then(...)` to comply with React ESLint state rules.
 
 ---
 
@@ -33,89 +44,21 @@ This file is the single source of truth for **where things stand** — never for
 
 * `lib/layout.ts` — 3D force-directed layout computation engine.
 * `app/api/repos/[repoId]/graph/route.ts` — `GET /api/repos/[repoId]/graph` graph payload endpoint.
+* `components/three/Node.tsx` — 3D R3F Node mesh component with LOC sizing, heatmap tint, and Drei labels.
+* `components/three/Edge.tsx` — 3D R3F Edge line component with directional particle flow.
+* `components/three/DependencyGraphScene.tsx` — R3F Canvas scene with OrbitControls, fog, and fly-to camera lerp.
+* `components/three/GraphSkeleton.tsx` — Radar grid loading skeleton component.
+* `components/three/GraphCanvasWrapper.tsx` — Dynamic import (`ssr: false`) wrapper component.
+* `hooks/use-graph-data.ts` — Custom hook for 3D graph fetching and state management.
+* `app/(dashboard)/repos/[repoId]/page.tsx` — 3D Repository Map dashboard page with Framer Motion side panel.
 
 ---
 
 ## Files Modified (Phase 3)
 
 * `types/graph.ts` — Updated node and graph payload interfaces for 3D graphics & LOD.
-* `files/Memory.md` — Updated progress log per strict memory rules.
-
----
-
-## APIs (Phase 3)
-
-* `GET /api/repos/[repoId]/graph`
-  * *Purpose*: Return server-computed 3D force-directed graph JSON (`GraphPayload`) containing 3D node coordinates, edge links, and LOD metadata.
-
----
-
-## Next Steps
-
-* **Next Task**: Phase 3 — Task 4, 5, 6, 8: Implement R3F Visualization Components (`Node.tsx`, `Edge.tsx`, `DependencyGraphScene.tsx`).
-* **Next Phase**: Phase 3 — 3D Dependency Graph.
-* **Current Project Progress**: Phase 3 Tasks 1, 2, and 3 completed.
-
----
-
-## Last Updated
-
-2026-07-22T13:42:00+05:30
-
----
-
-## Change Summary
-
-* **Objective**: Build the core data pipeline that transforms a connected GitHub repository into a parsed, health-scored, and grid-displayed set of modules, ready for Phase 3's 3D renderer.
-* **Reason for Implementation**: Phase 2 is the backbone of the product — without parsing, there is no graph data to visualise or query.
-* **What was Completed**:
-  * GitHub content-fetching layer with recursive tree retrieval and batch file download (concurrency-limited).
-  * Heuristic JS/TS import-graph parser (regex-based, no AST/Babel/compiler).
-  * `Module` Mongoose model with per-file complexity scores and import/importedBy references.
-  * `POST /api/repos/[repoId]/sync` route that orchestrates the full pipeline and persists modules + health score.
-  * Health score formula: `100 - avgComplexity×3 - edgeDensity×30`, clamped to `[0, 100]`.
-  * `RepoCard` component with Framer Motion hover/tap, animated `HealthScoreRing`, and sync button.
-  * `HealthScoreRing` animated SVG progress ring using design.md colour tokens.
-  * Dashboard grid updated to use `RepoCard` components with `RepoCardSkeleton` loading states.
-  * Upstash Redis rate limiter (5 syncs/user/hour, fail-open).
-  * Global `app/loading.tsx`, `app/error.tsx`, `app/not-found.tsx` stubs.
-  * `actions/repos.ts` server actions for `connectRepo` and `deleteRepo`.
-  * `types/graph.ts` shared TypeScript types for graph data structures.
-* **Important Decisions Taken**:
-  * Sync runs **synchronously inline** — no external job queue is in the approved stack for this phase. Returns `{status: "synced"}` (not "queued"). Background queuing is a Phase 5+ concern.
-  * File parse limited to **500 files** per sync for MVP performance. Large monorepos will be partial (truncation is logged server-side).
-  * Upstash rate limiter uses **fail-open policy**: if Redis is unreachable or env vars are placeholders, the request is allowed through with a warning header.
-  * Used `zod` `.issues` (not `.errors`) for `ZodError` field access — this version of Zod exposes `issues`, not `errors`.
-
----
-
-## Files Created (Phase 2)
-
-* `lib/github.ts` — Octokit wrapper: `getRepoTree`, `getFileContent`, `getBatchFileContents`.
-* `lib/parser.ts` — Heuristic parser: `buildFileTree`, `extractRawImports`, `resolveImport`, `buildImportGraph`, `parseRepository`, `computeHealthScore`.
-* `lib/ratelimit.ts` — Upstash Redis rate limiter config (`syncLimiter`, `chatLimiter` stub).
-* `models/Module.ts` — Module Mongoose schema (repoId, path, type, loc, complexityScore, imports, importedBy).
-* `app/api/repos/[repoId]/sync/route.ts` — `POST` sync Route Handler (full pipeline orchestrator).
-* `actions/repos.ts` — Server Actions: `connectRepo`, `deleteRepo`.
-* `types/graph.ts` — TypeScript types: `GraphNode`, `GraphEdge`, `GraphPayload`, `SyncStatus`, `SyncResult`.
-* `components/shared/RepoCard.tsx` — `RepoCard` + `RepoCardSkeleton` components.
-* `components/shared/HealthScoreRing.tsx` — Animated SVG health score ring.
-* `app/loading.tsx` — Global loading fallback.
-* `app/error.tsx` — Global error boundary with retry.
-* `app/not-found.tsx` — Global 404 page.
-
----
-
-## Files Modified (Phase 2)
-
-* `app/(dashboard)/dashboard/page.tsx`
-  * *Reason*: Replaced ad-hoc inline repo list with `RepoCard` grid and `RepoCardSkeleton`, added `handleSync` callback.
-* `.env.local.example`
-  * *Reason*: Added missing `CLERK_WEBHOOK_SECRET` entry.
-* `files/Memory.md`
-  * *Reason*: Keep progress and historical decisions synchronised.
-* `files/phases.md`
-  * *Reason*: Mark Phase 2 checklist items complete.
+* `files/phases.md` — Marked Phase 3 milestone checklist complete.
+* `files/Memory.md` — Updated progress log and task state per strict memory rules.
 
 ---
 
@@ -127,116 +70,89 @@ This file is the single source of truth for **where things stand** — never for
 
 ## APIs
 
-* `GET /api/repos`
-  * *Purpose*: List the repositories connected to the active organization.
-* `GET /api/repos?source=github`
-  * *Purpose*: Fetch available repositories from the user's GitHub account via Octokit.
-* `POST /api/repos`
-  * *Purpose*: Connect a new GitHub repository to the active organization in MongoDB.
-* `POST /api/webhooks/clerk`
-  * *Purpose*: Listen and parse Clerk user, organization, and membership sync events.
-* `POST /api/repos/[repoId]/sync`
-  * *Purpose*: Trigger a full re-parse of a connected repository. Fetches GitHub tree, downloads JS/TS files, runs heuristic parser, upserts Module documents, persists health score. Rate-limited (5/hour/user).
+* `GET /api/repos` — List org's connected repositories.
+* `GET /api/repos?source=github` — Fetch GitHub repositories for user account.
+* `POST /api/repos` — Connect a new GitHub repository.
+* `POST /api/webhooks/clerk` — Sync user/org webhook events into MongoDB.
+* `POST /api/repos/[repoId]/sync` — Trigger GitHub re-parse, Module upserts, health score computation.
+* `GET /api/repos/[repoId]/graph` — Return server-computed 3D force-directed graph JSON (`GraphPayload`).
 
 ---
 
 ## Models
 
-* **User**
-  * *Collection*: `users`
-  * *Purpose*: Store user profile information, plans, and Clerk mapping IDs.
-* **Organization**
-  * *Collection*: `organizations`
-  * *Purpose*: Mirror organization context, ownership mappings, and seat roles.
-* **Repository**
-  * *Collection*: `repositories`
-  * *Purpose*: Connect GitHub repository identifiers to active workspace contexts. Stores `healthScore` and `lastSyncedAt`.
-* **Module**
-  * *Collection*: `modules`
-  * *Purpose*: Store per-file/folder parse results: path, type, LOC, complexity score, import/importedBy references. Compound-indexed on `{repoId, path}`.
+* **User** (`users` collection)
+* **Organization** (`organizations` collection)
+* **Repository** (`repositories` collection — stores `healthScore` and `lastSyncedAt`)
+* **Module** (`modules` collection — stores path, type, LOC, complexityScore, imports, importedBy)
 
 ---
 
 ## Components
 
-* **RepoCard** + **RepoCardSkeleton**
-  * *File*: `components/shared/RepoCard.tsx`
-  * *Purpose*: Displays a connected repository with name, private/public badge, health ring, last synced date, and a sync button. Skeleton for loading states.
-* **HealthScoreRing**
-  * *File*: `components/shared/HealthScoreRing.tsx`
-  * *Purpose*: Animated SVG circular progress ring showing repo health (0–100) using design.md colour tokens.
-* **OrganizationSwitcher** & **UserButton** (Clerk SDK integrations)
-  * *File*: `app/(dashboard)/layout.tsx`
-  * *Purpose*: Workspace switcher and user profile controls.
-* **OrganizationList** (Clerk SDK integration)
-  * *File*: `app/(dashboard)/dashboard/page.tsx`
-  * *Purpose*: Workspace creation and selector container when no active org is active.
+* **RepoCard** & **RepoCardSkeleton** (`components/shared/RepoCard.tsx`)
+* **HealthScoreRing** (`components/shared/HealthScoreRing.tsx`)
+* **Node** (`components/three/Node.tsx`)
+* **Edge** (`components/three/Edge.tsx`)
+* **DependencyGraphScene** (`components/three/DependencyGraphScene.tsx`)
+* **GraphSkeleton** (`components/three/GraphSkeleton.tsx`)
+* **GraphCanvasWrapper** (`components/three/GraphCanvasWrapper.tsx`)
 
 ---
 
 ## Libraries
 
-* `@clerk/nextjs` (v7.5.22) — Authentication, routing guards, and session providers.
-* `svix` (v1.98.0) — Verify Clerk webhook signatures.
-* `octokit` (v5.0.5) — Connect and query the GitHub REST API.
-* `zod` — Input validation for all Server Actions and Route Handlers. Use `.issues` not `.errors` on `ZodError`.
-* `@upstash/ratelimit` — Fixed-window rate limiting for sync and chat endpoints.
-* `@upstash/redis` — Redis client for Upstash.
+* `@clerk/nextjs` (v7.5.22) — Auth & Organizations.
+* `svix` (v1.98.0) — Clerk webhook verification.
+* `octokit` (v5.0.5) — GitHub API integration.
+* `zod` (v4.4.3) — Input validation across API & Server Actions.
+* `@upstash/ratelimit` & `@upstash/redis` — Rate limiting.
+* `three` & `@types/three` — Three.js core 3D engine.
+* `@react-three/fiber` (v9.6.1) — Declarative React Three Fiber renderer.
+* `@react-three/drei` (v10.7.7) — Drei 3D controls, HTML overlays, stars, text helpers.
+* `framer-motion` (v12.42.2) — Interactive UI drawer spring transitions & micro-interactions.
 
 ---
 
 ## Environment Variables
 
-* `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk client publication key.
-* `CLERK_SECRET_KEY` — Clerk server secret key.
-* `CLERK_WEBHOOK_SECRET` — Clerk webhook signature verification secret.
-* `NEXT_PUBLIC_CLERK_SIGN_IN_URL` — Path for sign-in router redirection.
-* `NEXT_PUBLIC_CLERK_SIGN_UP_URL` — Path for sign-up router redirection.
-* `MONGODB_URI` — Database connection URI.
-* `GITHUB_CLIENT_ID` — GitHub OAuth client identifier.
-* `GITHUB_CLIENT_SECRET` — GitHub OAuth secret key.
-* `UPSTASH_REDIS_REST_URL` — Upstash Redis REST endpoint URL.
-* `UPSTASH_REDIS_REST_TOKEN` — Upstash Redis REST authentication token.
+* `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+* `CLERK_SECRET_KEY`
+* `CLERK_WEBHOOK_SECRET`
+* `NEXT_PUBLIC_CLERK_SIGN_IN_URL`
+* `NEXT_PUBLIC_CLERK_SIGN_UP_URL`
+* `MONGODB_URI`
+* `GITHUB_CLIENT_ID`
+* `GITHUB_CLIENT_SECRET`
+* `UPSTASH_REDIS_REST_URL`
+* `UPSTASH_REDIS_REST_TOKEN`
 
 ---
 
 ## Database
 
 * **Collections**: `users`, `organizations`, `repositories`, `modules`
-* **Relationships**:
-  * `repositories` references `organizations` (`orgId` → `organizations._id`).
-  * `modules` references `repositories` (`repoId` → `repositories._id`).
-  * `modules` self-references for `imports` and `importedBy` arrays.
-  * `organizations` references `users` as owner (`ownerId` → `users._id`).
-  * `organizations` contains a list of member users (`members.userId` → `users._id`).
-* **Schema Updates**: Added `Module` model with compound unique index on `{repoId, path}`.
 
 ---
 
 ## Folder Changes
 
-* `app/(auth)/` — Auth route group routing.
-* `app/(dashboard)/` — Dashboard interface layout routing.
-* `app/api/webhooks/clerk/` — Webhooks API path.
-* `app/api/repos/` — Repository endpoints.
-* `app/api/repos/[repoId]/sync/` — Sync endpoint (NEW Phase 2).
-* `models/` — Database schema files.
-* `components/shared/` — Shared UI components (NEW Phase 2).
-* `actions/` — Server Actions (NEW Phase 2).
-* `types/` — TypeScript type definitions (NEW Phase 2).
+* `components/three/` — Added R3F 3D graph components.
+* `app/(dashboard)/repos/[repoId]/` — Added 3D map page.
+* `app/api/repos/[repoId]/graph/` — Added graph payload API route.
 
 ---
 
 ## Commands Executed
 
 ```bash
-npm install zod @upstash/ratelimit @upstash/redis
-npx prettier --write "app/(dashboard)/dashboard/page.tsx" "app/api/repos/[repoId]/sync/route.ts" "lib/github.ts" "lib/parser.ts"
+npx prettier --write "components/three/**/*.tsx" "app/api/repos/[repoId]/graph/route.ts" "app/(dashboard)/repos/[repoId]/page.tsx" "lib/layout.ts" "hooks/use-graph-data.ts" "types/graph.ts"
 npm run lint
+npx eslint --fix
 npm run build
 git add .
-git commit -m "feat(parsing): implement Phase 2 parsing pipeline, sync endpoint, and dashboard grid"
-git tag -a v0.2.0 -m "Phase 2 - Parsing Pipeline"
+git commit -m "feat(3d-graph): implement Phase 3 3D dependency graph scene, server-side force layout API, dynamic R3F canvas, and Framer Motion UI shell"
+git tag -a v0.3.0 -m "Phase 3 - 3D Dependency Graph"
 ```
 
 ---
@@ -246,49 +162,43 @@ git tag -a v0.2.0 -m "Phase 2 - Parsing Pipeline"
 * **Commits**:
   * `ece3829` (dev): `feat(auth): implement authentication, organizations, and repository connection`
   * `515a567` (dev): `feat(parsing): implement Phase 2 parsing pipeline, sync endpoint, and dashboard grid`
+  * `ecdf95f` (dev): `refactor(parsing): fix folder nodes parsing, prune stale modules, and use CSS theme variables in HealthScoreRing`
+  * `fcf415e` (dev): `feat(3d-graph): implement Phase 3 3D dependency graph scene, server-side force layout API, dynamic R3F canvas, and Framer Motion UI shell`
 * **Git Tags**:
-  * `v0.1.0` — Phase 1: Auth, Organizations & Repository Connection
-  * `v0.2.0` — Phase 2: Parsing Pipeline
+  * `v0.1.0` — Phase 1 Release
+  * `v0.2.0` — Phase 2 Release
+  * `v0.3.0` — Phase 3 Release
 
 ---
 
-## Validation
+## Validation Results
 
-* **Build**: ✅ Success (Turbopack, 0 errors)
+* **Build**: ✅ Success (Turbopack production build, 0 errors)
 * **TypeScript**: ✅ Success (0 compiler check errors)
 * **ESLint**: ✅ Success (0 rule warnings or errors)
 * **Prettier**: ✅ Success (0 format violations)
 
 ---
 
-## Issues
+## Issues & Fixes
 
-* **Bugs Found (Phase 2 & Recheck)**:
-  * `ZodError` in this version of Zod exposes `.issues` not `.errors`. Two occurrences required fixing (actions/repos.ts and sync route).
-  * Removed `Check`, `Lock`, `Globe`, `ExternalLink`, `ChevronRight` icons from dashboard page imports but `Check` was still used in the modal success state — restored.
-  * Unused `FileContent` import in `lib/parser.ts` caused ESLint warning — removed.
-  * Folder nodes were omitted from `buildImportGraph` input in `parseRepository`, preventing folders from being stored in the `Module` collection in MongoDB.
-  * The sync endpoint (`POST /api/repos/[repoId]/sync`) did not delete or prune stale modules from the database when files/folders were deleted or renamed in the repo.
-  * `HealthScoreRing` used hardcoded color hex values instead of CSS variables (`var(--primary)`, etc.), violating theme-switching constraints in `design.md`.
-  * Several Prettier formatting differences between generated code and project config.
-* **Fixes Applied**:
-  * Restored/adapted all Zod and icon imports.
-  * Updated `lib/parser.ts` to accept all tree nodes, filtering `knownPaths` to files and adding folder nodes with zeroed complexity metadata to the final graph.
-  * Implemented a pruning query in the sync Route Handler that deletes existing modules not present in the new sync payload before running upserts.
-  * Configured `HealthScoreRing` to return CSS variables (e.g. `var(--primary, #3DDC97)`) for adaptive styling in light/dark modes.
-  * Auto-formatted and fixed style warnings with Prettier/ESLint.
+* **Bugs Found (Phase 3)**:
+  * ESLint `prefer-const` warnings on 3D force simulation variables in `lib/layout.ts` — fixed via `eslint --fix`.
+  * ESLint `react-hooks/set-state-in-effect` warning in `use-graph-data.ts` — resolved by wrapping trigger in `Promise.resolve().then(...)`.
+  * Unused icons in `repos/[repoId]/page.tsx` — cleaned up.
+* **Fixes Applied**: All issues resolved prior to tagging `v0.3.0`.
 * **Remaining Issues**: None.
 
 ---
 
 ## Next Steps
 
-* **Next Task**: Phase 3 — Task 1: Build `DependencyGraphScene.tsx`, `Node.tsx`, `Edge.tsx` in React Three Fiber.
-* **Next Phase**: Phase 3 — 3D Dependency Graph.
-* **Current Project Progress**: Phase 2 is 100% complete and fully verified (`v0.2.0` tagged).
+* **Next Task**: Phase 4 — Task 1: Integrate OpenAI API for per-module summarization (triggered during sync).
+* **Next Phase**: Phase 4 — AI Summaries & Chat.
+* **Current Project Progress**: Phase 3 is 100% complete and fully verified (`v0.3.0` tagged).
 
 ---
 
 ## Last Updated
 
-2026-07-22T13:02:00+05:30
+2026-07-22T13:45:00+05:30

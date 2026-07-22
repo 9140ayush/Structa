@@ -49,14 +49,14 @@ Work exactly one task at a time, in order. Do not skip ahead to a later phase or
 ## Phase 3 — 3D Dependency Graph
 **Milestone:** `M3`
 
-- [ ] Build `DependencyGraphScene.tsx`, `Node.tsx`, `Edge.tsx` in React Three Fiber
-- [ ] Implement server-side force-directed layout computation, exposed via `GET /api/repos/[id]/graph`
-- [ ] Implement camera fly-to-node interaction (`useFrame` + damped lerp)
-- [ ] Implement node sizing (by lines-of-code) and coloring (by complexity score)
-- [ ] Implement dynamic import of the canvas (`ssr:false`) and loading skeleton state
-- [ ] Implement Level-of-Detail reduction beyond ~500 nodes
-- [ ] Apply Framer Motion micro-interactions (node hover glow, panel transitions) per `design.md`
-- [ ] Tag release `v0.3.0`
+- [x] Build `DependencyGraphScene.tsx`, `Node.tsx`, `Edge.tsx` in React Three Fiber
+- [x] Implement server-side force-directed layout computation, exposed via `GET /api/repos/[id]/graph`
+- [x] Implement camera fly-to-node interaction (`useFrame` + damped lerp)
+- [x] Implement node sizing (by lines-of-code) and coloring (by complexity score)
+- [x] Implement dynamic import of the canvas (`ssr:false`) and loading skeleton state
+- [x] Implement Level-of-Detail reduction beyond ~500 nodes
+- [x] Apply Framer Motion micro-interactions (node hover glow, panel transitions) per `design.md`
+- [x] Tag release `v0.3.0`
 
 ---
 
