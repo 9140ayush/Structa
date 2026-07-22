@@ -4,6 +4,14 @@ import { Repository } from "@/models/Repository";
 import { NextResponse } from "next/server";
 import { Octokit } from "octokit";
 import { getOrCreateOrganization } from "@/lib/auth-sync";
+import { z } from "zod";
+
+const ConnectRepoBodySchema = z.object({
+  githubRepoId: z.union([z.string(), z.number()]).transform((val) => val.toString()),
+  name: z.string().min(1, "Repository name is required"),
+  url: z.string().url("Invalid repository URL"),
+  isPrivate: z.boolean().optional().default(false),
+});
 
 export async function GET(req: Request) {
   try {
@@ -85,14 +93,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { githubRepoId, name, url, isPrivate } = body;
-
-    if (!githubRepoId || !name || !url) {
+    const parsed = ConnectRepoBodySchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing required fields: githubRepoId, name, url" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid repository payload." },
         { status: 400 },
       );
     }
+
+    const { githubRepoId, name, url, isPrivate } = parsed.data;
 
     await connectToDatabase();
 
@@ -102,7 +111,7 @@ export async function POST(req: Request) {
     // Check if the repository is already connected to this organization
     const existingRepo = await Repository.findOne({
       orgId: dbOrg._id,
-      githubRepoId: githubRepoId.toString(),
+      githubRepoId,
     });
 
     if (existingRepo) {

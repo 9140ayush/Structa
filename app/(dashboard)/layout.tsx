@@ -44,6 +44,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 }}
               />
             </div>
+
+            {/* Explorer Mode Link */}
+            <Link
+              href="/explorer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-accent/40 bg-accent/10 hover:bg-accent/20 text-accent font-mono text-xs transition-colors"
+            >
+              <span>Explorer Mode</span>
+            </Link>
           </div>
 
           <div className="flex items-center gap-4">

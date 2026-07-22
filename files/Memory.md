@@ -187,12 +187,18 @@ git tag -a v0.3.0 -m "Phase 3 - 3D Dependency Graph"
   * ESLint `react-hooks/set-state-in-effect` warning in `use-graph-data.ts` — resolved by wrapping trigger in `Promise.resolve().then(...)`.
   * Unused icons in `repos/[repoId]/page.tsx` — cleaned up.
 * **Fixes Applied**: All issues resolved prior to tagging `v0.3.0`.
+* **Three Repository-Connection Methods Implementation**:
+  * *Method 1 (Workspace Connect)*: Hardened Zod schemas in `actions/repos.ts` and `app/api/repos/route.ts` (`z.union([z.string(), z.number()])`), improved private repo access error handling in `lib/github.ts`, and verified end-to-end connection flow.
+  * *Method 2 (Explorer Search)* & *Method 3 (Explorer URL Paste)*: Implemented `lib/repo-url-resolver.ts` (normalizes URLs & shorthands to `owner/repo`), `lib/github-search.ts` (GitHub Search API wrapper), `models/PublicRepository.ts` (shared Mongoose cache model), `GET /api/explorer/search`, `POST /api/explorer/resolve` (checks cache, or synchronously fetches, parses, computes 3D layout, and stores in shared cache), `GET /api/explorer/repo/[...key]`, and `app/explorer/page.tsx` UI with R3F 3D Canvas integration.
+  * *Scoping Deviation Note*: Explicitly pulled forward a synchronous slice of Phase 5 (Discovery), Phase 6 (shared cache lookup & single-request indexing), and Phase 7 (Explorer dashboard) so that Methods 2 and 3 produce functional 3D graphs end-to-end immediately for both authenticated and anonymous users, while deferring full background worker queues and search history surfaces to their respective phases.
 * **Files Created**:
-  * `lib/auth-sync.ts` — Resilient User & Organization synchronization helper (`getOrCreateUser`, `getOrCreateOrganization`).
-* **Bugs Found & Fixes Applied**:
-  * *Root Cause Identified*: When a user clicked "Connect" in the repository modal, `POST /api/repos` looked up `Organization.findOne({ clerkOrgId: orgId })`. If Clerk webhooks had not fired locally or the workspace was un-synchronized, it returned a 404 error ("Organization context not synchronized in database. Please wait or recreate.").
-  * *Fix Applied*: Created `lib/auth-sync.ts` with `getOrCreateOrganization()` which automatically detects missing User/Organization documents in MongoDB and synchronizes them on-demand from Clerk. Integrated `getOrCreateOrganization()` across `app/api/repos/route.ts`, `app/api/repos/[repoId]/sync/route.ts`, `app/api/repos/[repoId]/graph/route.ts`, and `actions/repos.ts`.
-  * *Auto-Sync Trigger*: Configured `handleConnectRepo` in `dashboard/page.tsx` to automatically trigger the `/api/repos/[repoId]/sync` parsing pipeline immediately upon connecting, populating modules, computing the Health Score, and preparing the 3D graph layout seamlessly.
+  * `lib/repo-url-resolver.ts` — Normalizes GitHub URLs and `owner/repo` shorthands to canonical keys.
+  * `lib/github-search.ts` — Octokit wrapper for searching public repositories and fetching metadata.
+  * `models/PublicRepository.ts` — Shared Mongoose model for Explorer repository cache.
+  * `app/api/explorer/search/route.ts` — Public repository search endpoint.
+  * `app/api/explorer/resolve/route.ts` — Repository URL/shorthand resolver and synchronous indexer.
+  * `app/api/explorer/repo/[...key]/route.ts` — Endpoint to retrieve cached public repository graph payloads.
+  * `app/explorer/page.tsx` — Explorer Mode UI page with search bar, URL paste, 3D Canvas, and side panel drawer.
 * **Remaining Issues**: None.
 
 ---
@@ -201,10 +207,10 @@ git tag -a v0.3.0 -m "Phase 3 - 3D Dependency Graph"
 
 * **Next Task**: Phase 4 — Task 1: Integrate OpenAI API for per-module summarization (triggered during sync).
 * **Next Phase**: Phase 4 — AI Summaries & Chat.
-* **Current Project Progress**: Phase 1 through Phase 3 end-to-end repository connection flow, parsing pipeline, and 3D graph are 100% complete, verified, and production-ready.
+* **Current Project Progress**: All three repository-connection methods (Workspace Connect, Explorer Search, Explorer URL Paste) are 100% complete, verified, and rendering interactive 3D dependency graphs.
 
 ---
 
 ## Last Updated
 
-2026-07-22T14:34:00+05:30
+2026-07-22T15:20:00+05:30

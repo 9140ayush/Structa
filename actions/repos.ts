@@ -18,10 +18,13 @@ import { z } from "zod";
 // ---------------------------------------------------------------------------
 
 const ConnectRepoSchema = z.object({
-  githubRepoId: z.string().min(1),
-  name: z.string().min(1),
-  url: z.string().url(),
-  isPrivate: z.boolean(),
+  githubRepoId: z
+    .union([z.string(), z.number()])
+    .transform((val) => val.toString())
+    .refine((val) => val.length > 0, "githubRepoId is required"),
+  name: z.string().min(1, "Repository name is required"),
+  url: z.string().url("Invalid repository URL"),
+  isPrivate: z.boolean().optional().default(false),
 });
 
 const DeleteRepoSchema = z.object({

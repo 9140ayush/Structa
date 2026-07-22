@@ -81,48 +81,58 @@ export async function getRepoTree(
   const params = RepoParamsSchema.parse({ owner, repo, branch });
   const octokit = createOctokit(token);
 
-  const targetBranch =
-    params.branch ?? (await getDefaultBranch(octokit, params.owner, params.repo));
+  try {
+    const targetBranch =
+      params.branch ?? (await getDefaultBranch(octokit, params.owner, params.repo));
 
-  // First, get the branch ref to obtain the tree SHA
-  const { data: refData } = await octokit.rest.git.getRef({
-    owner: params.owner,
-    repo: params.repo,
-    ref: `heads/${targetBranch}`,
-  });
+    // First, get the branch ref to obtain the tree SHA
+    const { data: refData } = await octokit.rest.git.getRef({
+      owner: params.owner,
+      repo: params.repo,
+      ref: `heads/${targetBranch}`,
+    });
 
-  const commitSha = refData.object.sha;
+    const commitSha = refData.object.sha;
 
-  // Get the commit to obtain the root tree SHA
-  const { data: commitData } = await octokit.rest.git.getCommit({
-    owner: params.owner,
-    repo: params.repo,
-    commit_sha: commitSha,
-  });
+    // Get the commit to obtain the root tree SHA
+    const { data: commitData } = await octokit.rest.git.getCommit({
+      owner: params.owner,
+      repo: params.repo,
+      commit_sha: commitSha,
+    });
 
-  const treeSha = commitData.tree.sha;
+    const treeSha = commitData.tree.sha;
 
-  // Fetch the full recursive tree
-  const { data: treeData } = await octokit.rest.git.getTree({
-    owner: params.owner,
-    repo: params.repo,
-    tree_sha: treeSha,
-    recursive: "1",
-  });
+    // Fetch the full recursive tree
+    const { data: treeData } = await octokit.rest.git.getTree({
+      owner: params.owner,
+      repo: params.repo,
+      tree_sha: treeSha,
+      recursive: "1",
+    });
 
-  const items: GitTreeItem[] = (treeData.tree ?? [])
-    .filter((item) => item.path && (item.type === "blob" || item.type === "tree"))
-    .map((item) => ({
-      path: item.path as string,
-      type: item.type as "blob" | "tree",
-      size: item.size,
-      sha: item.sha as string,
-    }));
+    const items: GitTreeItem[] = (treeData.tree ?? [])
+      .filter((item) => item.path && (item.type === "blob" || item.type === "tree"))
+      .map((item) => ({
+        path: item.path as string,
+        type: item.type as "blob" | "tree",
+        size: item.size,
+        sha: item.sha as string,
+      }));
 
-  return {
-    tree: items,
-    truncated: treeData.truncated ?? false,
-  };
+    return {
+      tree: items,
+      truncated: treeData.truncated ?? false,
+    };
+  } catch (err: unknown) {
+    const status = (err as { status?: number })?.status;
+    if (status === 404 || status === 403) {
+      throw new Error(
+        `Could not access repository ${owner}/${repo}. If this is a private repository, please reconnect GitHub with private repo ("repo") access scopes.`,
+      );
+    }
+    throw err;
+  }
 }
 
 /**
