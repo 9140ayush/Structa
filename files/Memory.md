@@ -5,21 +5,27 @@ This file is the single source of truth for **where things stand** — never for
 ---
 
 ## Status
-Phase: **Phase 0 — Project Setup** (see `phases.md`)
-Current file: *none yet — project not started*
-Last updated: 2026-07-21
+Phase: **Phase 1 — Auth, Orgs & Repo Connection** (see `phases.md`)
+Current file: *none - waiting for Phase 1 start*
+Last updated: 2026-07-22
 
 ## Completed
-*(nothing yet — this is the initial state)*
+- [x] Scaffold Next.js (App Router) + TypeScript project
+- [x] Install and configure Tailwind CSS + shadcn/ui base components
+- [x] Install Lucide React, Framer Motion, React Three Fiber + drei
+- [x] Set up ESLint/Prettier config
+- [x] Set up MongoDB connection (`lib/mongodb.ts`) against a dev database
+- [x] Set up environment variable structure (`.env.local.example`)
+- [x] Initialize Git repo, `main`/`dev` branch split, first commit
+- [x] Deploy an empty "Hello CodeAtlas" shell to Vercel
 
 ## In Progress
 *(nothing yet)*
 
 ## Next Up
-- Scaffold Next.js (App Router) + TypeScript project
-- Install and configure Tailwind CSS + shadcn/ui base components
-- Install Lucide React, Framer Motion, React Three Fiber + drei
-- *(full task list in `phases.md` → Phase 0)*
+- Phase 1 — Task 1: Integrate Clerk Auth (`<SignIn/>`, `<SignUp/>`, middleware) with GitHub OAuth as primary provider
 
 ## Notes / Deviations / Blockers
-- None yet. This file should be updated at the end of every work session per the end-of-task protocol: mark completed tasks with `- [x]`, note the current file/module in progress, pull the next task from `phases.md`, and log any deviation from `Rules.md`/`Architecture.md` here before it's forgotten.
+- **Vercel CLI CLI Auth:** The Vercel CLI token on the system was expired/invalid. The build compiles successfully locally with zero TS or ESLint errors. The user needs to run `npx vercel` to authenticate and deploy the shell.
+- **Npm naming conventions:** Package was initialized as `structa` rather than `Structa` in `package.json` to comply with npm lowercase restrictions.
+
