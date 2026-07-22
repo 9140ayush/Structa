@@ -5,8 +5,8 @@ This file is the single source of truth for **where things stand** — never for
 ---
 
 ## Status
-Phase: **Phase 1 — Auth, Orgs & Repo Connection** (see `phases.md`)
-Current file: *none - waiting for Phase 1 start*
+Phase: **Phase 0 — Project Setup** (Completed)
+Current file: *none - project setup complete*
 Last updated: 2026-07-22
 
 ## Completed
