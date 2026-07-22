@@ -1,10 +1,9 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { connectToDatabase } from "@/lib/mongodb";
-import { Organization } from "@/models/Organization";
 import { Repository } from "@/models/Repository";
 import { NextResponse } from "next/server";
-import { clerkClient } from "@clerk/nextjs/server";
 import { Octokit } from "octokit";
+import { getOrCreateOrganization } from "@/lib/auth-sync";
 
 export async function GET(req: Request) {
   try {
@@ -58,21 +57,9 @@ export async function GET(req: Request) {
       }
     }
 
-    // Default: List connected repositories for the organization
-    if (!orgId) {
-      return NextResponse.json(
-        { error: "No organization active. Please select or create an organization." },
-        { status: 400 },
-      );
-    }
-
+    // Default: List connected repositories for the active organization context
     await connectToDatabase();
-
-    // Find the organization in MongoDB using clerkOrgId
-    const dbOrg = await Organization.findOne({ clerkOrgId: orgId });
-    if (!dbOrg) {
-      return NextResponse.json({ repos: [] });
-    }
+    const dbOrg = await getOrCreateOrganization(orgId, userId);
 
     const repos = await Repository.find({ orgId: dbOrg._id }).sort({ name: 1 });
 
@@ -87,11 +74,8 @@ export async function POST(req: Request) {
   try {
     const { userId, orgId } = await auth();
 
-    if (!userId || !orgId) {
-      return NextResponse.json(
-        { error: "Unauthorized or no active organization selected" },
-        { status: 401 },
-      );
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
     let body;
@@ -112,14 +96,8 @@ export async function POST(req: Request) {
 
     await connectToDatabase();
 
-    // Find the organization in MongoDB
-    const dbOrg = await Organization.findOne({ clerkOrgId: orgId });
-    if (!dbOrg) {
-      return NextResponse.json(
-        { error: "Organization context not synchronized in database. Please wait or recreate." },
-        { status: 404 },
-      );
-    }
+    // Resilient organization sync — automatically creates or retrieves org
+    const dbOrg = await getOrCreateOrganization(orgId, userId);
 
     // Check if the repository is already connected to this organization
     const existingRepo = await Repository.findOne({
@@ -146,7 +124,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       repoId: newRepo._id.toString(),
       name: newRepo.name,
-      status: "syncing",
+      status: "connected",
     });
   } catch (err: unknown) {
     console.error("Error connecting repository:", err);

@@ -108,8 +108,15 @@ export default function DashboardPage() {
         throw new Error(data.error || "Failed to connect repository");
       }
 
-      setSuccessMessage(`Successfully connected ${repo.name}!`);
-      fetchConnectedRepos();
+      setSuccessMessage(`Successfully connected ${repo.name}! Parsing repository...`);
+      await fetchConnectedRepos();
+
+      // Trigger automatic initial sync for the newly connected repo
+      if (data.repoId) {
+        fetch(`/api/repos/${data.repoId}/sync`, { method: "POST" })
+          .then(() => fetchConnectedRepos())
+          .catch((syncErr) => console.error("Initial auto-sync error:", syncErr));
+      }
 
       // Close modal after brief delay
       setTimeout(() => {

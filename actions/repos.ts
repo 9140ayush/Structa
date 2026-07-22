@@ -10,7 +10,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Repository } from "@/models/Repository";
-import { Organization } from "@/models/Organization";
+import { getOrCreateOrganization } from "@/lib/auth-sync";
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------
@@ -37,8 +37,8 @@ export async function connectRepo(
 ): Promise<{ success: boolean; repoId?: string; error?: string }> {
   try {
     const { userId, orgId } = await auth();
-    if (!userId || !orgId) {
-      return { success: false, error: "Unauthorized or no active organization." };
+    if (!userId) {
+      return { success: false, error: "Unauthorized. Please log in." };
     }
 
     const parsed = ConnectRepoSchema.safeParse(input);
@@ -49,13 +49,7 @@ export async function connectRepo(
 
     await connectToDatabase();
 
-    const dbOrg = await Organization.findOne({ clerkOrgId: orgId });
-    if (!dbOrg) {
-      return {
-        success: false,
-        error: "Organization not synchronized. Please wait and try again.",
-      };
-    }
+    const dbOrg = await getOrCreateOrganization(orgId, userId);
 
     const existing = await Repository.findOne({
       orgId: dbOrg._id,
@@ -90,8 +84,8 @@ export async function deleteRepo(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { userId, orgId } = await auth();
-    if (!userId || !orgId) {
-      return { success: false, error: "Unauthorized or no active organization." };
+    if (!userId) {
+      return { success: false, error: "Unauthorized. Please log in." };
     }
 
     const parsed = DeleteRepoSchema.safeParse(input);
@@ -101,10 +95,7 @@ export async function deleteRepo(
 
     await connectToDatabase();
 
-    const dbOrg = await Organization.findOne({ clerkOrgId: orgId });
-    if (!dbOrg) {
-      return { success: false, error: "Organization not found." };
-    }
+    const dbOrg = await getOrCreateOrganization(orgId, userId);
 
     const deleted = await Repository.findOneAndDelete({
       _id: parsed.data.repoId,

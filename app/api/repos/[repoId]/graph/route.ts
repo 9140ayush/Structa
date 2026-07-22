@@ -17,9 +17,9 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Repository } from "@/models/Repository";
-import { Organization } from "@/models/Organization";
 import { Module } from "@/models/Module";
 import { computeGraphLayout, type RawModuleInput } from "@/lib/layout";
+import { getOrCreateOrganization } from "@/lib/auth-sync";
 import type { GraphPayload } from "@/types/graph";
 import mongoose from "mongoose";
 
@@ -42,11 +42,8 @@ export async function GET(
   try {
     // 1. Auth check
     const { userId, orgId } = await auth();
-    if (!userId || !orgId) {
-      return NextResponse.json(
-        { error: "Unauthorized or no active organization." },
-        { status: 401 },
-      );
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
     // 2. Validate route parameters
@@ -64,13 +61,7 @@ export async function GET(
     // 3. Database connection & repo authorization check
     await connectToDatabase();
 
-    const dbOrg = await Organization.findOne({ clerkOrgId: orgId });
-    if (!dbOrg) {
-      return NextResponse.json(
-        { error: "Organization context not found in database." },
-        { status: 404 },
-      );
-    }
+    const dbOrg = await getOrCreateOrganization(orgId, userId);
 
     if (!mongoose.Types.ObjectId.isValid(repoId)) {
       return NextResponse.json({ error: "Invalid repository ID format." }, { status: 400 });

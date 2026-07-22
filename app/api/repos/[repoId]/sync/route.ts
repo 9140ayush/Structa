@@ -17,11 +17,11 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Repository } from "@/models/Repository";
-import { Organization } from "@/models/Organization";
 import { Module } from "@/models/Module";
 import { getRepoTree, getBatchFileContents } from "@/lib/github";
 import { parseRepository, computeHealthScore } from "@/lib/parser";
 import { syncLimiter } from "@/lib/ratelimit";
+import { getOrCreateOrganization } from "@/lib/auth-sync";
 import type { SyncResult } from "@/types/graph";
 import mongoose from "mongoose";
 
@@ -65,11 +65,8 @@ export async function POST(
     // ------------------------------------------------------------------
     const { userId, orgId } = await auth();
 
-    if (!userId || !orgId) {
-      return NextResponse.json(
-        { error: "Unauthorized or no active organization." },
-        { status: 401 },
-      );
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
     // ------------------------------------------------------------------
@@ -115,10 +112,7 @@ export async function POST(
     // ------------------------------------------------------------------
     await connectToDatabase();
 
-    const dbOrg = await Organization.findOne({ clerkOrgId: orgId });
-    if (!dbOrg) {
-      return NextResponse.json({ error: "Organization not found in database." }, { status: 404 });
-    }
+    const dbOrg = await getOrCreateOrganization(orgId, userId);
 
     const repo = await Repository.findOne({
       _id: new mongoose.Types.ObjectId(repoId),
