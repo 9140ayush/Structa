@@ -199,6 +199,7 @@ git tag -a v0.3.0 -m "Phase 3 - 3D Dependency Graph"
   * `app/api/explorer/resolve/route.ts` — Repository URL/shorthand resolver and synchronous indexer.
   * `app/api/explorer/repo/[...key]/route.ts` — Endpoint to retrieve cached public repository graph payloads.
   * `app/explorer/page.tsx` — Explorer Mode UI page with search bar, URL paste, 3D Canvas, and side panel drawer.
+  * `.env.example` — Complete template for all required project credentials.
 * **Remaining Issues**: None.
 
 ---
@@ -207,10 +208,10 @@ git tag -a v0.3.0 -m "Phase 3 - 3D Dependency Graph"
 
 * **Next Task**: Phase 4 — Task 1: Integrate OpenAI API for per-module summarization (triggered during sync).
 * **Next Phase**: Phase 4 — AI Summaries & Chat.
-* **Current Project Progress**: All three repository-connection methods (Workspace Connect, Explorer Search, Explorer URL Paste) are 100% complete, verified, and rendering interactive 3D dependency graphs.
+* **Current Project Progress**: All three repository-connection methods (Workspace Connect, Explorer Search, Explorer URL Paste) are 100% complete, verified, and rendering interactive 3D dependency graphs. All environment templates are fully synchronized.
 
 ---
 
 ## Last Updated
 
-2026-07-22T15:20:00+05:30
+2026-07-22T15:26:00+05:30
