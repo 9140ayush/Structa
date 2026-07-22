@@ -36,13 +36,13 @@ Work exactly one task at a time, in order. Do not skip ahead to a later phase or
 ## Phase 2 — Parsing Pipeline
 **Milestone:** `M2`
 
-- [ ] Build the GitHub content-fetching layer (`lib/github.ts` via Octokit)
-- [ ] Build the file/folder tree + import-graph parser (heuristic-based for JS/TS)
-- [ ] Implement `Modules` Mongoose model and the sync Server Action (`POST /api/repos/[id]/sync`)
-- [ ] Compute and persist `healthScore` per repository
-- [ ] Build the repo dashboard grid (`RepoCard`, `HealthScoreRing`) with loading skeletons
-- [ ] Add rate limiting (Upstash) to the sync endpoint
-- [ ] Tag release `v0.2.0`
+- [x] Build the GitHub content-fetching layer (`lib/github.ts` via Octokit)
+- [x] Build the file/folder tree + import-graph parser (heuristic-based for JS/TS)
+- [x] Implement `Modules` Mongoose model and the sync Server Action (`POST /api/repos/[id]/sync`)
+- [x] Compute and persist `healthScore` per repository
+- [x] Build the repo dashboard grid (`RepoCard`, `HealthScoreRing`) with loading skeletons
+- [x] Add rate limiting (Upstash) to the sync endpoint
+- [x] Tag release `v0.2.0`
 
 ---
 
