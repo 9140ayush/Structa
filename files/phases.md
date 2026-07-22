@@ -7,14 +7,14 @@ Work exactly one task at a time, in order. Do not skip ahead to a later phase or
 ## Phase 0 — Project Setup
 **Milestone:** `M0`
 
-- [ ] Scaffold Next.js (App Router) + TypeScript project
-- [ ] Install and configure Tailwind CSS + shadcn/ui base components
-- [ ] Install Lucide React, Framer Motion, React Three Fiber + drei
-- [ ] Set up ESLint/Prettier config
-- [ ] Set up MongoDB connection (`lib/mongodb.ts`) against a dev database
-- [ ] Set up environment variable structure (`.env.local.example`) for Clerk, MongoDB, GitHub, OpenAI, Stripe, Resend, Upstash
-- [ ] Initialize Git repo, `main`/`dev` branch split, first commit
-- [ ] Deploy an empty "Hello Structa" shell to Vercel to confirm the pipeline works end-to-end
+- [x] Scaffold Next.js (App Router) + TypeScript project
+- [x] Install and configure Tailwind CSS + shadcn/ui base components
+- [x] Install Lucide React, Framer Motion, React Three Fiber + drei
+- [x] Set up ESLint/Prettier config
+- [x] Set up MongoDB connection (`lib/mongodb.ts`) against a dev database
+- [x] Set up environment variable structure (`.env.local.example`) for Clerk, MongoDB, GitHub, OpenAI, Stripe, Resend, Upstash
+- [x] Initialize Git repo, `main`/`dev` branch split, first commit
+- [x] Deploy an empty "Hello Structa" shell to Vercel to confirm the pipeline works end-to-end
 
 ---
 
