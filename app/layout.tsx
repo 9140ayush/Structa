@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Geist, JetBrains_Mono } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const inter = Inter({
@@ -29,11 +30,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${geistSans.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
-    </html>
+    <ClerkProvider afterSignOutUrl="/">
+      <html
+        lang="en"
+        className={`${inter.variable} ${geistSans.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
+      >
+        <body className="min-h-full flex flex-col">{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }

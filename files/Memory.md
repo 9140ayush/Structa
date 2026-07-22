@@ -5,8 +5,8 @@ This file is the single source of truth for **where things stand** — never for
 ---
 
 ## Status
-Phase: **Phase 0 — Project Setup** (Completed)
-Current file: *none - project setup complete*
+Phase: **Phase 1 — Auth, Organizations & Repository Connection** (Completed)
+Current file: *none - phase 1 complete*
 Last updated: 2026-07-22
 
 ## Completed
@@ -18,14 +18,23 @@ Last updated: 2026-07-22
 - [x] Set up environment variable structure (`.env.local.example`)
 - [x] Initialize Git repo, `main`/`dev` branch split, first commit
 - [x] Deploy an empty "Hello CodeAtlas" shell to Vercel
+- [x] Integrate Clerk Authentication (`<SignIn/>`, `<SignUp/>`, middleware) with GitHub OAuth as primary provider
+- [x] Enable Clerk Organizations; build `(auth)` route group
+- [x] Implement `Users` and `Organizations` Mongoose models
+- [x] Implement Clerk webhook handler (`/api/webhooks/clerk`) syncing user/org/membership events into MongoDB
+- [x] Build `(dashboard)` layout with middleware-protected routes
+- [x] Implement GitHub OAuth repo listing + "Connect Repo" flow (`POST /api/repos`)
+- [x] Implement `Repositories` Mongoose model
+- [x] Build the empty-state dashboard ("Connect your first repository")
+- [x] Tag release `v0.1.0`
 
 ## In Progress
 *(nothing yet)*
 
 ## Next Up
-- Phase 1 — Task 1: Integrate Clerk Auth (`<SignIn/>`, `<SignUp/>`, middleware) with GitHub OAuth as primary provider
+- Phase 2 — Parsing Pipeline: Build GitHub content-fetching, tree/import graph parser, `Modules` model, sync action, health score calculation, and rate limiting.
 
 ## Notes / Deviations / Blockers
-- **Vercel CLI CLI Auth:** The Vercel CLI token on the system was expired/invalid. The build compiles successfully locally with zero TS or ESLint errors. The user needs to run `npx vercel` to authenticate and deploy the shell.
-- **Npm naming conventions:** Package was initialized as `structa` rather than `Structa` in `package.json` to comply with npm lowercase restrictions.
-
+- **Clerk v7 Control Component**: In `@clerk/nextjs` v7, the `<SignedIn>` and `<SignedOut>` components are replaced/deprecated in favor of the unified `<Show>` component. Used `<Show when="signed-in" fallback={...}>` in `app/page.tsx`.
+- **Lucide React GitHub Icon**: The `Github` brand logo is not exported by `lucide-react` v1.25.0 due to design alignment. Implemented a custom SVG `GitHubIcon` component in `app/(dashboard)/dashboard/page.tsx` for brand rendering.
+- **Prettier formatting**: Standardized line endings and fixed cascading render issues in hooks via `useCallback` and `Promise.resolve().then(...)` deferred execution.

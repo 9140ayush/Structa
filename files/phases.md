@@ -21,15 +21,15 @@ Work exactly one task at a time, in order. Do not skip ahead to a later phase or
 ## Phase 1 — Auth, Orgs & Repo Connection
 **Milestone:** `M1`
 
-- [ ] Integrate Clerk (`<SignIn/>`, `<SignUp/>`, middleware) with GitHub OAuth as primary provider
-- [ ] Enable Clerk Organizations; build `(auth)` route group
-- [ ] Implement `Users` and `Organizations` Mongoose models
-- [ ] Implement Clerk webhook handler (`/api/webhooks/clerk`) syncing `user.created`/`user.updated`/org events into MongoDB
-- [ ] Build `(dashboard)` layout with middleware-protected routes
-- [ ] Implement GitHub OAuth repo listing + "Connect Repo" flow (`POST /api/repos`)
-- [ ] Implement `Repositories` Mongoose model
-- [ ] Build the empty-state dashboard ("Connect your first repo")
-- [ ] Tag release `v0.1.0`
+- [x] Integrate Clerk (`<SignIn/>`, `<SignUp/>`, middleware) with GitHub OAuth as primary provider
+- [x] Enable Clerk Organizations; build `(auth)` route group
+- [x] Implement `Users` and `Organizations` Mongoose models
+- [x] Implement Clerk webhook handler (`/api/webhooks/clerk`) syncing `user.created`/`user.updated`/org events into MongoDB
+- [x] Build `(dashboard)` layout with middleware-protected routes
+- [x] Implement GitHub OAuth repo listing + "Connect Repo" flow (`POST /api/repos`)
+- [x] Implement `Repositories` Mongoose model
+- [x] Build the empty-state dashboard ("Connect your first repo")
+- [x] Tag release `v0.1.0`
 
 ---
 

@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import { CheckCircle2, ShieldCheck, Database, Layers, GitBranch, Cloud } from "lucide-react";
+import { Show, UserButton } from "@clerk/nextjs";
+import Link from "next/link";
 
 export default function Home() {
   const tasks = [
@@ -32,10 +34,27 @@ export default function Home() {
           <span className="font-heading font-semibold text-lg tracking-tight">Structa</span>
         </div>
         <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            Vercel Live
-          </span>
+          <Show
+            when="signed-in"
+            fallback={
+              <Link
+                href="/sign-in"
+                className="px-3.5 py-1.5 rounded bg-secondary hover:bg-secondary/80 text-foreground font-sans font-medium border border-border transition-colors text-xs"
+              >
+                Sign In
+              </Link>
+            }
+          >
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard"
+                className="px-3.5 py-1.5 rounded bg-primary hover:bg-primary-hover text-background font-sans font-medium transition-colors text-xs"
+              >
+                Go to Dashboard
+              </Link>
+              <UserButton />
+            </div>
+          </Show>
         </div>
       </header>
 
