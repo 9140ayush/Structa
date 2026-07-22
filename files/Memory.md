@@ -6,17 +6,61 @@ This file is the single source of truth for **where things stand** — never for
 
 ## Phase Information
 
-* **Phase Number**: Phase 2
-* **Milestone**: `M2`
-* **Task Numbers**: Tasks 1 through 7
+* **Phase Number**: Phase 3
+* **Milestone**: `M3`
+* **Task Numbers**: Tasks 1 through 10
 * **Task Titles**:
-  * Task 1: Build GitHub content-fetching layer (`lib/github.ts`)
-  * Task 2: Build file/folder tree + import-graph parser (`lib/parser.ts`)
-  * Task 3: Implement `Module` Mongoose model + sync Route Handler + Server Actions + graph types
-  * Task 4: Compute and persist `healthScore` per repository (embedded in Task 3 sync route)
-  * Task 5: Build repo dashboard grid (`RepoCard`, `HealthScoreRing`) with loading skeletons
-  * Task 6: Add Upstash rate limiting to the sync endpoint (`lib/ratelimit.ts`)
-  * Task 7: Verify build/lint/TypeScript, commit, tag `v0.2.0`
+  * Task 1: Graph Data Types & 3D Layout Engine (`types/graph.ts`, `lib/layout.ts`)
+  * Task 2 & 3: Server-side Graph API (`GET /api/repos/[repoId]/graph`)
+  * Task 4, 5, 6, 8: R3F Visualization Components (`DependencyGraphScene.tsx`, `Node.tsx`, `Edge.tsx`)
+  * Task 7: Dynamic Canvas Loading & Skeleton (`GraphCanvasWrapper.tsx`, `GraphSkeleton.tsx`)
+  * Task 9: 3D Map Page & Framer Motion UI (`repos/[repoId]/page.tsx`, `use-graph-data.ts`)
+  * Task 10: Validation & Tag `v0.3.0`
+
+---
+
+## Change Summary (Phase 3)
+
+* **Objective**: Build a high-performance, explorable 3D dependency graph with React Three Fiber, Drei, and Framer Motion based on server-side force-directed layout computation.
+* **Reason for Implementation**: Core differentiator of Structa — visual 3D navigation of codebase architecture.
+* **What was Completed (Task 1)**:
+  * Expanded `types/graph.ts` with 3D spatial properties (`x`, `y`, `z`), connection counters (`importsCount`, `importedByCount`), LOD metadata, camera target, and selection state.
+  * Implemented `lib/layout.ts`: deterministic 3D Coulomb-Hooke force-directed simulation engine with central gravity, folder clustering, and LOD thresholding (>500 nodes).
+
+---
+
+## Files Created (Phase 3)
+
+* `lib/layout.ts` — 3D force-directed layout computation engine.
+* `app/api/repos/[repoId]/graph/route.ts` — `GET /api/repos/[repoId]/graph` graph payload endpoint.
+
+---
+
+## Files Modified (Phase 3)
+
+* `types/graph.ts` — Updated node and graph payload interfaces for 3D graphics & LOD.
+* `files/Memory.md` — Updated progress log per strict memory rules.
+
+---
+
+## APIs (Phase 3)
+
+* `GET /api/repos/[repoId]/graph`
+  * *Purpose*: Return server-computed 3D force-directed graph JSON (`GraphPayload`) containing 3D node coordinates, edge links, and LOD metadata.
+
+---
+
+## Next Steps
+
+* **Next Task**: Phase 3 — Task 4, 5, 6, 8: Implement R3F Visualization Components (`Node.tsx`, `Edge.tsx`, `DependencyGraphScene.tsx`).
+* **Next Phase**: Phase 3 — 3D Dependency Graph.
+* **Current Project Progress**: Phase 3 Tasks 1, 2, and 3 completed.
+
+---
+
+## Last Updated
+
+2026-07-22T13:42:00+05:30
 
 ---
 
