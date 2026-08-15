@@ -115,19 +115,19 @@ This phase introduces Explorer Mode's front door — search and URL analysis —
 
 The cache is Explorer Mode's entire cost-control and scalability strategy. This phase is infrastructure-heavy and deliberately ships before any Explorer UI is user-facing beyond search.
 
-- [ ] Implement `PublicRepositories` Mongoose model (shared cache: metadata, `indexStatus`, `graphJson`, `moduleSummaries`, `healthScore`, `lastCommitShaAtIndex`, `exploreCount`)
-- [ ] Implement `SearchHistory` Mongoose model
-- [ ] Build the cache-lookup workflow: canonical key → indexed & fresh? → serve vs. queue indexing
-- [ ] Build the background indexing worker/queue (Vercel Cron or scheduled Route Handler + job-status table) so indexing never runs inline in a user-facing request
-- [ ] Wire the indexing worker to reuse the Phase 2 parser, Phase 3 graph generator, and Phase 4 AI summarizer against `PublicRepositories` instead of `Repositories`
-- [ ] Implement indexing-status polling (`GET /api/explorer/status/[canonicalKey]`)
-- [ ] Implement a concurrency lock so two simultaneous requests for the same uncached repo don't trigger duplicate indexing jobs
-- [ ] Implement duplicate detection (different URL formats for the same repo must resolve to the same cache entry)
-- [ ] Implement cache invalidation based on default-branch HEAD SHA comparison (not a fixed TTL)
-- [ ] Implement manual repository refresh (`POST /api/explorer/repo/[canonicalKey]/refresh`, signed-in only, forces re-index regardless of SHA match)
-- [ ] Implement cached-graph reuse (serve `graphJson`/`moduleSummaries` directly on cache hit — no recomputation)
-- [ ] Document repository lifecycle states (`not_indexed` → `indexing` → `indexed` / `failed`) and their transitions
-- [ ] Tag release `v0.6.0`
+- [x] Implement `PublicRepositories` Mongoose model (shared cache: metadata, `indexStatus`, `graphJson`, `moduleSummaries`, `healthScore`, `lastCommitShaAtIndex`, `exploreCount`)
+- [x] Implement `SearchHistory` Mongoose model
+- [x] Build the cache-lookup workflow: canonical key → indexed & fresh? → serve vs. queue indexing
+- [x] Build the background indexing worker/queue (Vercel Cron or scheduled Route Handler + job-status table) so indexing never runs inline in a user-facing request
+- [x] Wire the indexing worker to reuse the Phase 2 parser, Phase 3 graph generator, and Phase 4 AI summarizer against `PublicRepositories` instead of `Repositories`
+- [x] Implement indexing-status polling (`GET /api/explorer/status/[canonicalKey]`)
+- [x] Implement a concurrency lock so two simultaneous requests for the same uncached repo don't trigger duplicate indexing jobs
+- [x] Implement duplicate detection (different URL formats for the same repo must resolve to the same cache entry)
+- [x] Implement cache invalidation based on default-branch HEAD SHA comparison (not a fixed TTL)
+- [x] Implement manual repository refresh (`POST /api/explorer/repo/[canonicalKey]/refresh`, signed-in only, forces re-index regardless of SHA match)
+- [x] Implement cached-graph reuse (serve `graphJson`/`moduleSummaries` directly on cache hit — no recomputation)
+- [x] Document repository lifecycle states (`not_indexed` → `indexing` → `indexed` / `failed`) and their transitions
+- [x] Tag release `v0.6.0`
 
 ---
 

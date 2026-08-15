@@ -31,26 +31,35 @@ export async function GET(
     const cachedRepo = await PublicRepository.findOne({ canonicalKey });
     if (!cachedRepo) {
       return NextResponse.json(
-        { error: `Repository ${canonicalKey} is not indexed yet.` },
+        { success: false, error: `Repository ${canonicalKey} is not indexed yet.` },
         { status: 404 },
       );
     }
 
     return NextResponse.json({
-      canonicalKey,
-      graphPayload: cachedRepo.graphPayload,
-      healthScore: cachedRepo.healthScore,
-      repo: {
-        name: cachedRepo.name,
-        owner: cachedRepo.owner,
-        url: cachedRepo.url,
-        stars: cachedRepo.stars,
-        language: cachedRepo.language,
-        description: cachedRepo.description,
+      success: true,
+      data: {
+        canonicalKey,
+        graphPayload: cachedRepo.graphPayload,
+        healthScore: cachedRepo.healthScore,
+        indexStatus: cachedRepo.indexStatus,
+        repo: {
+          id: cachedRepo.githubRepoId,
+          name: cachedRepo.name,
+          fullName: `${cachedRepo.owner}/${cachedRepo.repo}`,
+          owner: cachedRepo.owner,
+          url: cachedRepo.url,
+          stars: cachedRepo.stars,
+          language: cachedRepo.language,
+          description: cachedRepo.description,
+          isPrivate: cachedRepo.isPrivate,
+          defaultBranch: cachedRepo.defaultBranch,
+          updatedAt: cachedRepo.indexedAt.toISOString(),
+        },
       },
     });
   } catch (err: unknown) {
     console.error("[GET /api/explorer/repo/[...key]]", err);
-    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal server error." }, { status: 500 });
   }
 }

@@ -59,6 +59,28 @@ async function getDefaultBranch(octokit: Octokit, owner: string, repo: string): 
   return data.default_branch;
 }
 
+/**
+ * Retrieve the default branch and current HEAD commit SHA of a repository.
+ */
+export async function getRepoHeadSha(
+  token: string,
+  owner: string,
+  repo: string,
+  branch?: string,
+): Promise<{ commitSha: string; defaultBranch: string }> {
+  const octokit = createOctokit(token);
+  const targetBranch = branch || (await getDefaultBranch(octokit, owner, repo));
+  const { data: refData } = await octokit.rest.git.getRef({
+    owner,
+    repo,
+    ref: `heads/${targetBranch}`,
+  });
+  return {
+    commitSha: refData.object.sha,
+    defaultBranch: targetBranch,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------

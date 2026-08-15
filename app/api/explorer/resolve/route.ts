@@ -1,23 +1,24 @@
 /**
  * POST /api/explorer/resolve
  *
- * Explorer repository resolver and indexer endpoint.
- * Converges both Explorer Search & Explorer URL Paste into a single pipeline.
- * Serves cached graph payloads immediately if available, or indexes the public
- * repository synchronously on cache miss.
+ * Explorer repository resolver and cache manager.
+ * Checks the shared cache and returns cached data if fresh (Cache Hit).
+ * If the cache is missing or stale, it enqueues a background indexing job
+ * and returns the "indexing" status immediately without blocking.
  *
  * Accessible to all users (signed-in or anonymous).
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { connectToDatabase } from "@/lib/mongodb";
 import { normalizeRepoUrl } from "@/lib/repo-url-resolver";
 import { getPublicRepoDetails } from "@/lib/github-search";
-import { getRepoTree, getBatchFileContents } from "@/lib/github";
-import { parseRepository, computeHealthScore } from "@/lib/parser";
-import { computeGraphLayout, type RawModuleInput } from "@/lib/layout";
+import { getRepoHeadSha } from "@/lib/github";
 import { PublicRepository } from "@/models/PublicRepository";
+import { SearchHistory } from "@/models/SearchHistory";
+import { runBackgroundIndexing } from "@/lib/explorer-indexer";
 
 const ResolveBodySchema = z.object({
   urlOrShorthand: z.string().min(1, "URL or repository shorthand is required"),
@@ -56,20 +57,187 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     await connectToDatabase();
 
-    // 1. Check shared PublicRepository cache
+    const token = process.env.GITHUB_PAT || "";
+
+    // 1. Fetch current default branch and HEAD commit SHA from GitHub
+    let headInfo: { commitSha: string; defaultBranch: string } | null = null;
+    try {
+      headInfo = await getRepoHeadSha(token, owner, repo);
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      const isNotFoundOrPrivate =
+        status === 404 ||
+        String(err).toLowerCase().includes("not found") ||
+        String(err).toLowerCase().includes("private");
+
+      if (isNotFoundOrPrivate) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Repository ${owner}/${repo} was not found on GitHub or is private.`,
+          },
+          { status: 404 },
+        );
+      }
+      // Log connection error and fail-open to cache checking if GitHub is temporarily down
+      console.warn(`[resolve] Failed to fetch HEAD commit for ${canonicalKey}, failing-open:`, err);
+    }
+
+    // 2. Check the shared PublicRepository cache
     const existingCache = await PublicRepository.findOne({ canonicalKey });
+
+    const { userId } = await auth();
+
     if (existingCache) {
+      // Record search history for signed-in users
+      if (userId) {
+        await SearchHistory.create({ userId, canonicalKey });
+      }
+
+      if (existingCache.indexStatus === "indexed") {
+        // Freshness check using default branch HEAD SHA
+        const isFresh = headInfo ? existingCache.lastCommitShaAtIndex === headInfo.commitSha : true;
+
+        if (isFresh) {
+          // Cache Hit! Increment exploreCount atomically
+          await PublicRepository.updateOne({ canonicalKey }, { $inc: { exploreCount: 1 } });
+
+          return NextResponse.json({
+            success: true,
+            data: {
+              cached: true,
+              canonicalKey,
+              graphPayload: existingCache.graphPayload,
+              healthScore: existingCache.healthScore,
+              indexStatus: "indexed",
+              repo: {
+                id: existingCache.githubRepoId,
+                name: existingCache.name,
+                fullName: `${existingCache.owner}/${existingCache.repo}`,
+                owner: existingCache.owner,
+                url: existingCache.url,
+                stars: existingCache.stars,
+                language: existingCache.language,
+                description: existingCache.description,
+                isPrivate: existingCache.isPrivate,
+                defaultBranch: existingCache.defaultBranch,
+                updatedAt: existingCache.indexedAt.toISOString(),
+              },
+            },
+          });
+        }
+
+        // Cache Stale! Transition back to indexing and trigger re-index job
+        existingCache.indexStatus = "indexing";
+        existingCache.error = "";
+        await existingCache.save();
+
+        if (headInfo) {
+          void runBackgroundIndexing(
+            canonicalKey,
+            owner,
+            repo,
+            headInfo.defaultBranch,
+            headInfo.commitSha,
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            cached: false,
+            canonicalKey,
+            indexStatus: "indexing",
+            repo: {
+              id: existingCache.githubRepoId,
+              name: existingCache.name,
+              fullName: `${existingCache.owner}/${existingCache.repo}`,
+              owner: existingCache.owner,
+              url: existingCache.url,
+              stars: existingCache.stars,
+              language: existingCache.language,
+              description: existingCache.description,
+              isPrivate: existingCache.isPrivate,
+              defaultBranch: existingCache.defaultBranch,
+              updatedAt: existingCache.updatedAt.toISOString(),
+            },
+          },
+        });
+      }
+
+      if (existingCache.indexStatus === "failed") {
+        // If it failed, allow retrying if HEAD SHA details are available
+        if (headInfo) {
+          existingCache.indexStatus = "indexing";
+          existingCache.error = "";
+          await existingCache.save();
+
+          void runBackgroundIndexing(
+            canonicalKey,
+            owner,
+            repo,
+            headInfo.defaultBranch,
+            headInfo.commitSha,
+          );
+
+          return NextResponse.json({
+            success: true,
+            data: {
+              cached: false,
+              canonicalKey,
+              indexStatus: "indexing",
+              repo: {
+                id: existingCache.githubRepoId,
+                name: existingCache.name,
+                fullName: `${existingCache.owner}/${existingCache.repo}`,
+                owner: existingCache.owner,
+                url: existingCache.url,
+                stars: existingCache.stars,
+                language: existingCache.language,
+                description: existingCache.description,
+                isPrivate: existingCache.isPrivate,
+                defaultBranch: existingCache.defaultBranch,
+                updatedAt: existingCache.updatedAt.toISOString(),
+              },
+            },
+          });
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            cached: false,
+            canonicalKey,
+            indexStatus: "failed",
+            error: existingCache.error,
+            repo: {
+              id: existingCache.githubRepoId,
+              name: existingCache.name,
+              fullName: `${existingCache.owner}/${existingCache.repo}`,
+              owner: existingCache.owner,
+              url: existingCache.url,
+              stars: existingCache.stars,
+              language: existingCache.language,
+              description: existingCache.description,
+              isPrivate: existingCache.isPrivate,
+              defaultBranch: existingCache.defaultBranch,
+              updatedAt: existingCache.updatedAt.toISOString(),
+            },
+          },
+        });
+      }
+
+      // Already in 'indexing' or 'not_indexed' status — concurrency lock prevents duplicates
       return NextResponse.json({
         success: true,
         data: {
-          cached: true,
+          cached: false,
           canonicalKey,
-          graphPayload: existingCache.graphPayload,
-          healthScore: existingCache.healthScore,
+          indexStatus: existingCache.indexStatus,
           repo: {
             id: existingCache.githubRepoId,
             name: existingCache.name,
-            fullName: `${existingCache.owner}/${existingCache.name}`,
+            fullName: `${existingCache.owner}/${existingCache.repo}`,
             owner: existingCache.owner,
             url: existingCache.url,
             stars: existingCache.stars,
@@ -77,14 +245,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             description: existingCache.description,
             isPrivate: existingCache.isPrivate,
             defaultBranch: existingCache.defaultBranch,
-            updatedAt: existingCache.indexedAt.toISOString(),
+            updatedAt: existingCache.updatedAt.toISOString(),
           },
         },
       });
     }
 
-    // 2. Cache miss — Validate public repository accessibility via GitHub API
-    const token = process.env.GITHUB_PAT || "";
+    // 3. Cache Miss — Validate repository public access and retrieve basic metadata
     let repoDetails;
     try {
       repoDetails = await getPublicRepoDetails(owner, repo, token);
@@ -93,72 +260,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         {
           success: false,
           error:
-            (err as Error).message || `Repository ${owner}/${repo} is private or does not exist.`,
+            err instanceof Error
+              ? err.message
+              : `Repository ${owner}/${repo} is private or does not exist.`,
         },
         { status: 400 },
       );
     }
 
-    // 3. Synchronous Indexing: Fetch recursive tree
-    const treeResult = await getRepoTree(token, owner, repo);
-    const blobItems = treeResult.tree.filter((item) => item.type === "blob");
-
-    // Filter JS/TS source files (max 400 files for fast first index)
-    const validExtensions = /\.(js|jsx|ts|tsx|mjs|cjs)$/i;
-    const sourcePaths = blobItems
-      .map((item) => item.path)
-      .filter((p) => validExtensions.test(p))
-      .slice(0, 400);
-
-    // Download batch file contents
-    const fetchedFiles = await getBatchFileContents(token, owner, repo, sourcePaths);
-
-    // Parse repository structure & import graph
-    const contentMap = new Map<string, string>(fetchedFiles.map((f) => [f.path, f.content]));
-    const parseResult = parseRepository(treeResult.tree, contentMap);
-    const healthScore = computeHealthScore(parseResult);
-    const modules = parseResult.modules;
-
-    // Map parsed modules & edges to RawModuleInput format for force-directed layout computation
-    const moduleMap = new Map<string, RawModuleInput>();
-    const pathToIdMap = new Map<string, string>();
-
-    parseResult.modules.forEach((m, index) => {
-      const id = `mod_${index}_${m.path.replace(/[^a-zA-Z0-9]/g, "_")}`;
-      pathToIdMap.set(m.path, id);
-      moduleMap.set(m.path, {
-        _id: id,
-        path: m.path,
-        type: m.type,
-        loc: m.loc ?? 0,
-        complexityScore: m.complexityScore ?? 0,
-        imports: [],
-        importedBy: [],
-      });
-    });
-
-    for (const edge of parseResult.edges) {
-      const fromId = pathToIdMap.get(edge.from);
-      const toId = pathToIdMap.get(edge.to);
-      if (fromId && toId) {
-        const fromMod = moduleMap.get(edge.from);
-        const toMod = moduleMap.get(edge.to);
-        if (fromMod && !fromMod.imports.includes(toId)) {
-          fromMod.imports.push(toId);
-        }
-        if (toMod && !toMod.importedBy.includes(fromId)) {
-          toMod.importedBy.push(fromId);
-        }
-      }
-    }
-
-    const rawInputs = Array.from(moduleMap.values());
-
-    // Compute 3D Force-Directed Layout
-    const graphPayload = computeGraphLayout(rawInputs);
-
-    // 4. Save to PublicRepository cache
-    const publicRepo = await PublicRepository.create({
+    // Initialize document cache with indexStatus: 'indexing'
+    const newCache = await PublicRepository.create({
       canonicalKey,
       owner,
       repo,
@@ -167,34 +278,54 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       description: repoDetails.description ?? "",
       stars: repoDetails.stars,
       language: repoDetails.language ?? "",
-      healthScore,
-      graphPayload,
-      moduleCount: modules.length,
-      indexedAt: new Date(),
-      defaultBranch: repoDetails.defaultBranch,
       githubRepoId: repoDetails.id,
       isPrivate: repoDetails.isPrivate,
+      defaultBranch: headInfo?.defaultBranch || repoDetails.defaultBranch,
+      indexStatus: "indexing",
+      exploreCount: 1,
     });
+
+    if (userId) {
+      await SearchHistory.create({ userId, canonicalKey });
+    }
+
+    // Launch background worker indexing (asynchronous & non-blocking)
+    if (headInfo) {
+      void runBackgroundIndexing(
+        canonicalKey,
+        owner,
+        repo,
+        headInfo.defaultBranch,
+        headInfo.commitSha,
+      );
+    } else {
+      void runBackgroundIndexing(
+        canonicalKey,
+        owner,
+        repo,
+        repoDetails.defaultBranch,
+        repoDetails.updatedAt, // fallback SHA if HEAD API was temporarily down
+      );
+    }
 
     return NextResponse.json({
       success: true,
       data: {
         cached: false,
         canonicalKey,
-        graphPayload,
-        healthScore,
+        indexStatus: "indexing",
         repo: {
-          id: publicRepo.githubRepoId,
-          name: publicRepo.name,
-          fullName: `${publicRepo.owner}/${publicRepo.name}`,
-          owner: publicRepo.owner,
-          url: publicRepo.url,
-          stars: publicRepo.stars,
-          language: publicRepo.language,
-          description: publicRepo.description,
-          isPrivate: publicRepo.isPrivate,
-          defaultBranch: publicRepo.defaultBranch,
-          updatedAt: publicRepo.indexedAt.toISOString(),
+          id: newCache.githubRepoId,
+          name: newCache.name,
+          fullName: `${newCache.owner}/${newCache.repo}`,
+          owner: newCache.owner,
+          url: newCache.url,
+          stars: newCache.stars,
+          language: newCache.language,
+          description: newCache.description,
+          isPrivate: newCache.isPrivate,
+          defaultBranch: newCache.defaultBranch,
+          updatedAt: newCache.createdAt.toISOString(),
         },
       },
     });
@@ -203,7 +334,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json(
       {
         success: false,
-        error: (err as Error).message || "Failed to resolve and index repository.",
+        error: err instanceof Error ? err.message : "Failed to resolve repository.",
       },
       { status: 500 },
     );

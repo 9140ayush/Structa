@@ -6,81 +6,83 @@ This file is the single source of truth for **where things stand** — never for
 
 ## Phase Information
 
-* **Phase Number**: Phase 5
-* **Milestone**: `M5`
-* **Task Numbers**: Tasks 1 through 5
+* **Phase Number**: Phase 6
+* **Milestone**: `M6`
+* **Task Numbers**: Tasks 1 through 7
 * **Task Titles**:
-  * Task 1: GitHub Search Service (`lib/github-search.ts`) (Done)
-  * Task 2: Repository URL Resolver (`lib/repo-url-resolver.ts`) (Done)
-  * Task 3: Public Repository Validation & Metadata Fetching (Done)
-  * Task 4: Standardize API Endpoints (`GET /api/explorer/search`, `POST /api/explorer/resolve`) (Done)
-  * Task 5: Scaffold Explorer Route Group & Layout (`app/(explorer)/`) (Done)
+  * Task 1: PublicRepositories Cache Schema (`models/PublicRepository.ts`) (Done)
+  * Task 2: SearchHistory Model (`models/SearchHistory.ts`) (Done)
+  * Task 3: Cache-Lookup & Freshness Workflow (HEAD SHA comparison) (Done)
+  * Task 4: Background Indexing Worker (`lib/explorer-indexer.ts`) (Done)
+  * Task 5: Status Polling Route (`GET /api/explorer/status/[...key]`) (Done)
+  * Task 6: Concurrency Lock & Duplicate URL Prevention (Done)
+  * Task 7: Manual Refresh API & Signed-in Auth (`POST /api/explorer/repo/refresh`) (Done)
 
 ---
 
-## Change Summary (Phase 5)
+## Change Summary (Phase 6)
 
-* **Objective**: Scaffold the public Explorer foundations including search, URL normalization, metadata fetching, route group placement, and standardized JSON endpoints.
-* **Reason for Implementation**: Establish the verified, canonical repository identity and discovery entry points before building the cache layer (Phase 6) and dashboard (Phase 7).
+* **Objective**: Implement the shared cache model, indexing worker, and job locks to avoid repeated repository parses, control AI costs, and support asynchronous processing of public repositories in Explorer Mode.
+* **Reason for Implementation**: Primary cost-control and performance scaling strategy for Explorer Mode. Avoids blocking requests on indexing and ensures private repos never enter the cache.
 * **What was Completed**:
-  * Scaffolder route group `(explorer)` by moving `app/explorer/` folder into `app/(explorer)/explorer/`.
-  * Created `app/(explorer)/layout.tsx` wrapper for all Explorer page views.
-  * Updated `lib/github-search.ts`: Extended `PublicSearchResult` interface with `defaultBranch` and `canonicalKey` properties to return comprehensive metadata from GitHub.
-  * Updated `models/PublicRepository.ts`: Added `defaultBranch`, `githubRepoId`, and `isPrivate` to the Mongoose cache model interface and schema definition for compatibility.
-  * Modified `app/api/explorer/search/route.ts`: Rewrote GET route to use standardized `{ success: true, data: { repositories } }` and `{ success: false, error }` formats.
-  * Modified `app/api/explorer/resolve/route.ts`: Rewrote POST route to validate, parse inputs, check cache, fetch public metadata (rejecting private repos), run synchronous parsing for compatibility, and return standardized `{ success: true, data: details }` response.
-  * Updated `app/(explorer)/explorer/page.tsx`: Aligned search debouncer and resolution handler to consume the standardized `{ success, data }` response shapes.
+  * Extended `models/PublicRepository.ts` schema with: `indexStatus`, `lastCommitShaAtIndex`, `exploreCount`, `moduleSummaries`, `error`, `createdAt`, `updatedAt`.
+  * Created `models/SearchHistory.ts` to record signed-in user Explorer queries for pagination in later phases.
+  * Added `getRepoHeadSha` in `lib/github.ts` to fetch default branch and HEAD commit SHA without parsing the file tree.
+  * Created `lib/explorer-indexer.ts`: Background indexer worker mapping trees, parsing dependencies, executing force-directed layouts, and calling AI summarization. Updates status to `indexed` or `failed`.
+  * Rewrote `app/api/explorer/resolve/route.ts` to implement cache hit (serve directly from Mongo), stale cache (queue re-indexing asynchronously), and cache miss (create record with status `indexing` and start worker).
+  * Created `app/api/explorer/status/[...key]/route.ts` status polling API.
+  * Created `app/api/explorer/repo/refresh/route.ts` manual refresh API for signed-in users.
+  * Refactored `app/(explorer)/explorer/page.tsx` search/resolve fetching to poll the status API on cache miss/indexing state and overlay progress text on the skeleton.
 
 ---
 
-## Files Created (Phase 5)
+## Files Created (Phase 6)
 
-* `app/(explorer)/layout.tsx` — Explorer Mode route group layout wrapper.
+* `models/SearchHistory.ts` — Search history Mongoose model.
+* `lib/explorer-indexer.ts` — Explorer indexing background worker.
+* `app/api/explorer/status/[...key]/route.ts` — Index status polling API.
+* `app/api/explorer/repo/refresh/route.ts` — Manual repository refresh API.
 
 ---
 
-## Files Modified (Phase 5)
+## Files Modified (Phase 6)
 
-* `lib/github-search.ts` — Added `defaultBranch` and `canonicalKey` properties to public repository queries.
-* `models/PublicRepository.ts` — Added schema mapping for cache properties.
-* `app/api/explorer/search/route.ts` — Standardized response shape.
-* `app/api/explorer/resolve/route.ts` — Standardized response shape, checked cache, and validated metadata.
-* `app/(explorer)/explorer/page.tsx` — Relocated route file; updated API consumption logic.
-* `files/phases.md` — Marked Phase 5 milestone completed.
-* `files/Memory.md` — Updated for Phase 5 status.
+* `models/PublicRepository.ts` — Added cache schema fields and TypeScript automatic timestamps.
+* `lib/github.ts` — Added default branch HEAD SHA resolver.
+* `app/api/explorer/resolve/route.ts` — Integrated asynchronous cache checking and worker.
+* `app/api/explorer/repo/[...key]/route.ts` — Aligned response to standardized JSON shape.
+* `app/(explorer)/explorer/page.tsx` - Integrated loading skeleton status overlay and polling interval logic.
+* `files/phases.md` — Marked Phase 6 milestone completed.
+* `files/Memory.md` — Updated for Phase 6 status.
 
 ---
 
 ## Files Deleted
 
-*(None)*
+* `app/api/explorer/repo/[...key]/refresh/route.ts` (deleted due to catch-all URL routing limitations; replaced by `/api/explorer/repo/refresh`).
 
 ---
 
 ## APIs
 
-* `GET /api/explorer/search?q=query` — Public repo search (returns `{ success: true, data: { repositories } }`).
-* `POST /api/explorer/resolve` — Resolves URL or shorthand, checks cache, validates accessibility, indexes on miss (returns `{ success: true, data }`).
-* `GET /api/explorer/repo/[...key]` — Retrieve cached Explorer payloads.
+* `GET /api/explorer/search?q=query` — Public repo search suggestions.
+* `POST /api/explorer/resolve` — Input resolution, cache management, and job enqueuing.
+* `GET /api/explorer/status/[...key]` — Index status polling.
+* `POST /api/explorer/repo/refresh` — Signed-in forced indexing.
+* `GET /api/explorer/repo/[...key]` — Load fully indexed graph payload.
 
 ---
 
 ## Models
 
-* **PublicRepository** (`publicrepositories` — stores Explorer cached metadata and graphs)
-
----
-
-## Components
-
-* **GraphCanvasWrapper** (`components/three/GraphCanvasWrapper.tsx`)
-* **GraphSkeleton** (`components/three/GraphSkeleton.tsx`)
+* **PublicRepository** (`publicrepositories` — stores Explorer cached metadata, graphs, and statuses)
+* **SearchHistory** (`searchhistories` — stores user activity)
 
 ---
 
 ## Validation Results
 
-* **Build**: ✅ Success (production build compiles with 0 errors)
+* **Build**: ✅ Success (production build compiles cleanly)
 * **TypeScript**: ✅ Success (0 compiler issues on clean cache)
 * **ESLint**: ✅ Success (0 linting or styling violations)
 * **Prettier**: ✅ Success (Formatted output matches config)
@@ -89,6 +91,6 @@ This file is the single source of truth for **where things stand** — never for
 
 ## Next Steps
 
-* **Next Task**: Phase 6 — Task 1: Implement background worker and queues.
-* **Next Phase**: Phase 6 — Shared Repository Cache & Background Indexing Engine.
-* **Current Project Progress**: Phase 5 Explorer Foundations are 100% complete and fully verified.
+* **Next Task**: Phase 7 — Task 1: Build the Explorer Dashboard UI.
+* **Next Phase**: Phase 7 — Explorer Dashboard & Search Experience.
+* **Current Project Progress**: Phase 6 Cache & Background Indexing is 100% complete and fully verified.

@@ -76,6 +76,7 @@ export default function ExplorerPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
+  const [indexingStatus, setIndexingStatus] = useState<string | null>(null);
 
   // Active Resolved Repo Data
   const [activeRepo, setActiveRepo] = useState<ResolvedRepoData | null>(null);
@@ -85,6 +86,16 @@ export default function ExplorerPage() {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup polling interval on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Debounced Search Query
   useEffect(() => {
@@ -125,8 +136,15 @@ export default function ExplorerPage() {
   const handleResolve = useCallback(async (targetUrlOrShorthand: string) => {
     if (!targetUrlOrShorthand.trim()) return;
 
+    // Clear any active polling interval
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+
     setIsResolving(true);
     setResolveError(null);
+    setIndexingStatus(null);
     setSearchResults([]);
 
     try {
@@ -141,13 +159,71 @@ export default function ExplorerPage() {
         throw new Error(result.error || "Failed to resolve repository.");
       }
 
-      setActiveRepo(result.data);
+      const resolveData = result.data;
+
+      if (resolveData.indexStatus !== "indexed") {
+        setIndexingStatus(resolveData.indexStatus);
+
+        const canonicalKey = resolveData.canonicalKey;
+        let pollCount = 0;
+        const maxPolls = 60; // Max 2 minutes (2s * 60)
+
+        pollIntervalRef.current = setInterval(async () => {
+          pollCount++;
+          if (pollCount > maxPolls) {
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+            setIsResolving(false);
+            setIndexingStatus(null);
+            setResolveError("Indexing timed out. Please refresh or try again later.");
+            return;
+          }
+
+          try {
+            const statusRes = await fetch(`/api/explorer/status/${canonicalKey}`);
+            const statusData = await statusRes.json();
+
+            if (statusRes.ok && statusData.success) {
+              const status = statusData.data.indexStatus;
+              setIndexingStatus(status);
+
+              if (status === "indexed") {
+                if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+
+                // Indexing complete: load cached data
+                const repoRes = await fetch(`/api/explorer/repo/${canonicalKey}`);
+                const repoResult = await repoRes.json();
+
+                if (repoRes.ok && repoResult.success) {
+                  setActiveRepo(repoResult.data);
+                } else {
+                  setResolveError(repoResult.error || "Failed to load indexed graph.");
+                }
+                setIsResolving(false);
+                setIndexingStatus(null);
+              } else if (status === "failed") {
+                if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+
+                setResolveError(statusData.data.error || "Repository indexing failed.");
+                setIsResolving(false);
+                setIndexingStatus(null);
+              }
+            }
+          } catch (pollErr) {
+            console.error("Error polling index status:", pollErr);
+          }
+        }, 2000);
+      } else {
+        setActiveRepo(resolveData);
+        setIsResolving(false);
+      }
+
       setSelectedNodeId(null);
       setHoveredNodeId(null);
     } catch (err: unknown) {
       console.error("[handleResolve]", err);
       setResolveError((err as Error).message || "Could not resolve repository.");
-    } finally {
       setIsResolving(false);
     }
   }, []);
@@ -320,8 +396,20 @@ export default function ExplorerPage() {
       {/* ------------------------------------------------------------------- */}
       <main className="relative flex-1 w-full h-full overflow-hidden">
         {isResolving ? (
-          <div className="w-full h-full p-6 flex flex-col items-center justify-center">
+          <div className="w-full h-full p-6 flex flex-col items-center justify-center relative bg-background">
             <GraphSkeleton />
+            {indexingStatus && (
+              <div className="absolute bottom-12 text-center space-y-2 z-10 animate-pulse">
+                <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest font-semibold">
+                  Status:{" "}
+                  <span className="text-accent font-bold">{indexingStatus.replace("_", " ")}</span>
+                </p>
+                <p className="text-[11px] font-sans text-muted-foreground max-w-xs leading-relaxed mx-auto">
+                  Analyzing codebase structure and compiling AI summaries. This may take up to a
+                  minute...
+                </p>
+              </div>
+            )}
           </div>
         ) : !activeRepo ? (
           /* Empty Landing State */

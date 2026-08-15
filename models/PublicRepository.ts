@@ -11,12 +11,19 @@ export interface IPublicRepository extends Document {
   stars: number;
   language?: string;
   healthScore: number;
-  graphPayload: GraphPayload;
+  graphPayload?: GraphPayload; // Optional until indexed
   moduleCount: number;
   indexedAt: Date;
   defaultBranch: string;
   githubRepoId: string;
   isPrivate: boolean;
+  indexStatus: "not_indexed" | "indexing" | "indexed" | "failed";
+  lastCommitShaAtIndex?: string;
+  exploreCount: number;
+  moduleSummaries?: Record<string, string>;
+  error?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const PublicRepositorySchema = new Schema<IPublicRepository>(
@@ -30,12 +37,22 @@ const PublicRepositorySchema = new Schema<IPublicRepository>(
     stars: { type: Number, default: 0 },
     language: { type: String, default: "" },
     healthScore: { type: Number, default: 100 },
-    graphPayload: { type: Schema.Types.Mixed, required: true },
+    graphPayload: { type: Schema.Types.Mixed },
     moduleCount: { type: Number, default: 0 },
     indexedAt: { type: Date, default: Date.now },
     defaultBranch: { type: String, required: true, default: "main" },
     githubRepoId: { type: String, required: true },
     isPrivate: { type: Boolean, required: true, default: false },
+    indexStatus: {
+      type: String,
+      enum: ["not_indexed", "indexing", "indexed", "failed"],
+      default: "not_indexed",
+      required: true,
+    },
+    lastCommitShaAtIndex: { type: String, default: "" },
+    exploreCount: { type: Number, default: 0 },
+    moduleSummaries: { type: Schema.Types.Mixed, default: {} },
+    error: { type: String, default: "" },
   },
   {
     timestamps: true,
