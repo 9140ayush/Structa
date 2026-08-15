@@ -44,12 +44,17 @@ interface ResolvedRepoData {
   graphPayload: GraphPayload;
   healthScore: number;
   repo: {
+    id: string;
     name: string;
+    fullName: string;
     owner: string;
     url: string;
     stars: number;
     language: string;
     description: string;
+    isPrivate: boolean;
+    defaultBranch: string;
+    updatedAt: string;
   };
 }
 
@@ -97,12 +102,15 @@ export default function ExplorerPage() {
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/explorer/search?q=${encodeURIComponent(inputVal.trim())}`);
-        const data = await res.json();
-        if (res.ok) {
-          setSearchResults(data.repos || []);
+        const result = await res.json();
+        if (res.ok && result.success) {
+          setSearchResults(result.data.repositories || []);
+        } else {
+          setSearchResults([]);
         }
       } catch (err) {
         console.error(err);
+        setSearchResults([]);
       } finally {
         setIsSearching(false);
       }
@@ -128,12 +136,12 @@ export default function ExplorerPage() {
         body: JSON.stringify({ urlOrShorthand: targetUrlOrShorthand.trim() }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to resolve repository.");
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || "Failed to resolve repository.");
       }
 
-      setActiveRepo(data);
+      setActiveRepo(result.data);
       setSelectedNodeId(null);
       setHoveredNodeId(null);
     } catch (err: unknown) {

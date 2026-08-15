@@ -29,13 +29,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
       body = await req.json();
     } catch {
-      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Invalid JSON body." }, { status: 400 });
     }
 
     const parsed = ResolveBodySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid payload." },
+        { success: false, error: parsed.error.issues[0]?.message ?? "Invalid payload." },
         { status: 400 },
       );
     }
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!resolvedKey) {
       return NextResponse.json(
         {
+          success: false,
           error:
             "Invalid repository format. Please enter a valid GitHub URL (https://github.com/owner/repo) or shorthand (owner/repo).",
         },
@@ -59,17 +60,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const existingCache = await PublicRepository.findOne({ canonicalKey });
     if (existingCache) {
       return NextResponse.json({
-        cached: true,
-        canonicalKey,
-        graphPayload: existingCache.graphPayload,
-        healthScore: existingCache.healthScore,
-        repo: {
-          name: existingCache.name,
-          owner: existingCache.owner,
-          url: existingCache.url,
-          stars: existingCache.stars,
-          language: existingCache.language,
-          description: existingCache.description,
+        success: true,
+        data: {
+          cached: true,
+          canonicalKey,
+          graphPayload: existingCache.graphPayload,
+          healthScore: existingCache.healthScore,
+          repo: {
+            id: existingCache.githubRepoId,
+            name: existingCache.name,
+            fullName: `${existingCache.owner}/${existingCache.name}`,
+            owner: existingCache.owner,
+            url: existingCache.url,
+            stars: existingCache.stars,
+            language: existingCache.language,
+            description: existingCache.description,
+            isPrivate: existingCache.isPrivate,
+            defaultBranch: existingCache.defaultBranch,
+            updatedAt: existingCache.indexedAt.toISOString(),
+          },
         },
       });
     }
@@ -82,6 +91,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     } catch (err: unknown) {
       return NextResponse.json(
         {
+          success: false,
           error:
             (err as Error).message || `Repository ${owner}/${repo} is private or does not exist.`,
         },
@@ -161,26 +171,40 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       graphPayload,
       moduleCount: modules.length,
       indexedAt: new Date(),
+      defaultBranch: repoDetails.defaultBranch,
+      githubRepoId: repoDetails.id,
+      isPrivate: repoDetails.isPrivate,
     });
 
     return NextResponse.json({
-      cached: false,
-      canonicalKey,
-      graphPayload,
-      healthScore,
-      repo: {
-        name: publicRepo.name,
-        owner: publicRepo.owner,
-        url: publicRepo.url,
-        stars: publicRepo.stars,
-        language: publicRepo.language,
-        description: publicRepo.description,
+      success: true,
+      data: {
+        cached: false,
+        canonicalKey,
+        graphPayload,
+        healthScore,
+        repo: {
+          id: publicRepo.githubRepoId,
+          name: publicRepo.name,
+          fullName: `${publicRepo.owner}/${publicRepo.name}`,
+          owner: publicRepo.owner,
+          url: publicRepo.url,
+          stars: publicRepo.stars,
+          language: publicRepo.language,
+          description: publicRepo.description,
+          isPrivate: publicRepo.isPrivate,
+          defaultBranch: publicRepo.defaultBranch,
+          updatedAt: publicRepo.indexedAt.toISOString(),
+        },
       },
     });
   } catch (err: unknown) {
     console.error("[POST /api/explorer/resolve]", err);
     return NextResponse.json(
-      { error: (err as Error).message || "Failed to resolve and index repository." },
+      {
+        success: false,
+        error: (err as Error).message || "Failed to resolve and index repository.",
+      },
       { status: 500 },
     );
   }

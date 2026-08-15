@@ -14,6 +14,9 @@ export interface IPublicRepository extends Document {
   graphPayload: GraphPayload;
   moduleCount: number;
   indexedAt: Date;
+  defaultBranch: string;
+  githubRepoId: string;
+  isPrivate: boolean;
 }
 
 const PublicRepositorySchema = new Schema<IPublicRepository>(
@@ -30,6 +33,9 @@ const PublicRepositorySchema = new Schema<IPublicRepository>(
     graphPayload: { type: Schema.Types.Mixed, required: true },
     moduleCount: { type: Number, default: 0 },
     indexedAt: { type: Date, default: Date.now },
+    defaultBranch: { type: String, required: true, default: "main" },
+    githubRepoId: { type: String, required: true },
+    isPrivate: { type: Boolean, required: true, default: false },
   },
   {
     timestamps: true,

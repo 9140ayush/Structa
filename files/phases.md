@@ -95,16 +95,16 @@ This phase builds the AI layer once, correctly, so that both Workspace and Explo
 
 This phase introduces Explorer Mode's front door — search and URL analysis — without yet building the cache or dashboard behind it. Both entry methods converge on one resolver so downstream phases only integrate once.
 
-- [ ] Build the GitHub Search Service (`lib/github-search.ts`) wrapping the GitHub Search API via Octokit
-- [ ] Build the Repository URL Resolver (`lib/repo-url-resolver.ts`) — accepts full URLs, `github.com/owner/repo`, or bare `owner/repo` shorthand
-- [ ] Implement repository validation (must be public and accessible; reject private/non-existent repos before any downstream work)
-- [ ] Implement repository metadata fetch (description, stars, primary language, last-updated, default branch)
-- [ ] Normalize all accepted input formats to one canonical key (`owner/repo`, lowercased) — this is the join key every later phase (cache, history, analytics) will use
-- [ ] Implement `GET /api/explorer/search` (Method 1 — search by name/owner)
-- [ ] Implement `POST /api/explorer/resolve` (Method 2 — analyze by URL/shorthand)
-- [ ] Scaffold the `(explorer)` route group and layout (search bar + URL input, no dashboard/org chrome yet)
-- [ ] Implement error states for invalid URLs, private repos, and repos that don't exist
-- [ ] Tag release `v0.5.0`
+- [x] Build the GitHub Search Service (`lib/github-search.ts`) wrapping the GitHub Search API via Octokit
+- [x] Build the Repository URL Resolver (`lib/repo-url-resolver.ts`) — accepts full URLs, `github.com/owner/repo`, or bare `owner/repo` shorthand
+- [x] Implement repository validation (must be public and accessible; reject private/non-existent repos before any downstream work)
+- [x] Implement repository metadata fetch (description, stars, primary language, last-updated, default branch)
+- [x] Normalize all accepted input formats to one canonical key (`owner/repo`, lowercased) — this is the join key every later phase (cache, history, analytics) will use
+- [x] Implement `GET /api/explorer/search` (Method 1 — search by name/owner)
+- [x] Implement `POST /api/explorer/resolve` (Method 2 — analyze by URL/shorthand)
+- [x] Scaffold the `(explorer)` route group and layout (search bar + URL input, no dashboard/org chrome yet)
+- [x] Implement error states for invalid URLs, private repos, and repos that don't exist
+- [x] Tag release `v0.5.0`
 
 ---
 

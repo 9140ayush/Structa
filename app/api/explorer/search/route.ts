@@ -19,17 +19,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const parsed = QuerySchema.safeParse(q);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid search query." },
+        { success: false, error: parsed.error.issues[0]?.message ?? "Invalid search query." },
         { status: 400 },
       );
     }
 
     const repos = await searchPublicRepositories(parsed.data);
-    return NextResponse.json({ repos });
+    return NextResponse.json({
+      success: true,
+      data: { repositories: repos },
+    });
   } catch (err: unknown) {
     console.error("[GET /api/explorer/search]", err);
     return NextResponse.json(
-      { error: (err as Error).message || "Failed to search public repositories." },
+      { success: false, error: (err as Error).message || "Failed to search public repositories." },
       { status: 500 },
     );
   }

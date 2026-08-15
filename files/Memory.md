@@ -6,68 +6,48 @@ This file is the single source of truth for **where things stand** — never for
 
 ## Phase Information
 
-* **Phase Number**: Phase 4
-* **Milestone**: `M4`
-* **Task Numbers**: Tasks 1 through 9
+* **Phase Number**: Phase 5
+* **Milestone**: `M5`
+* **Task Numbers**: Tasks 1 through 5
 * **Task Titles**:
-  * Task 1: Audit Phase 2 & 3 Dependencies (Done)
-  * Task 2: OpenAI Config & Client Setup (Done)
-  * Task 3: Module Summarization Service (Done)
-  * Task 4: Sync Pipeline Integration (Done)
-  * Task 5: Chat Sessions Persistence & Route (Done)
-  * Task 6: Chat React Hook & Message Bubble UI (Done)
-  * Task 7: Grounded Chat Panel Viewport & Search (Done)
-  * Task 8: Architecture Doc Export API (Done)
-  * Task 9: UI Integration, Testing, Linting & Build Verification (Done)
+  * Task 1: GitHub Search Service (`lib/github-search.ts`) (Done)
+  * Task 2: Repository URL Resolver (`lib/repo-url-resolver.ts`) (Done)
+  * Task 3: Public Repository Validation & Metadata Fetching (Done)
+  * Task 4: Standardize API Endpoints (`GET /api/explorer/search`, `POST /api/explorer/resolve`) (Done)
+  * Task 5: Scaffold Explorer Route Group & Layout (`app/(explorer)/`) (Done)
 
 ---
 
-## Change Summary (Phase 4)
+## Change Summary (Phase 5)
 
-* **Objective**: Build a robust, reusable AI Intelligence Layer including progressive module summarization, "Ask the Codebase" Q&A chat with citations, semantic search filters, and architecture doc export.
-* **Reason for Implementation**: Primary product differentiator and core onboarding experience enabling instant developer comprehension of codebases.
+* **Objective**: Scaffold the public Explorer foundations including search, URL normalization, metadata fetching, route group placement, and standardized JSON endpoints.
+* **Reason for Implementation**: Establish the verified, canonical repository identity and discovery entry points before building the cache layer (Phase 6) and dashboard (Phase 7).
 * **What was Completed**:
-  * Installed `openai` and `ai` (Vercel AI SDK) dependencies.
-  * Implemented `lib/openai.ts`: Server-only OpenAI client singleton with timeout limits and gpt-4o-mini configurations.
-  * Extended `models/Module.ts` with `summaryStatus` enum (`pending` | `generating` | `done` | `failed` | `skipped`) to track progressive AI processing.
-  * Implemented `lib/ai/summarize.ts`: Reusable, repo-agnostic module summarization service with concurrency limits, token truncation, and error fallback states.
-  * Modified `app/api/repos/[repoId]/sync/route.ts`: Integrated fire-and-forget background module summarization that is non-blocking to the user's graph-rendering sync response.
-  * Implemented `models/ChatSession.ts`: Persisted chat Q&A history schema including citations.
-  * Implemented `app/api/chat/route.ts`: Streaming POST chat handler leveraging OpenAI text-stream directly to circumvent ai-sdk v7 gateway peer-dependency constraints. Features Zod validation, role authentication, and strict organization ownership gates.
-  * Implemented `hooks/use-chat-session.ts`: Custom client-side React hook managing text stream decoding, message state, and citation markers.
-  * Implemented `components/chat/MessageBubble.tsx`: Styled chat bubbles using theme tokens with clickable module citation chips.
-  * Implemented `components/chat/ChatPanel.tsx`: Collapsible "Ask the Codebase" utility featuring suggestions, message streaming, conversation search, and doc export.
-  * Wired `ChatPanel` and `Sparkles` summary highlights into the main 3D Map viewport (`app/(dashboard)/repos/[repoId]/page.tsx`).
-  * Implemented `app/api/repos/[repoId]/export/route.ts`: Route handler to generate and download AI-compiled markdown architecture documentation.
-  * Created dedicated `app/(dashboard)/repos/[repoId]/chat/page.tsx` full-page workspace chat view.
+  * Scaffolder route group `(explorer)` by moving `app/explorer/` folder into `app/(explorer)/explorer/`.
+  * Created `app/(explorer)/layout.tsx` wrapper for all Explorer page views.
+  * Updated `lib/github-search.ts`: Extended `PublicSearchResult` interface with `defaultBranch` and `canonicalKey` properties to return comprehensive metadata from GitHub.
+  * Updated `models/PublicRepository.ts`: Added `defaultBranch`, `githubRepoId`, and `isPrivate` to the Mongoose cache model interface and schema definition for compatibility.
+  * Modified `app/api/explorer/search/route.ts`: Rewrote GET route to use standardized `{ success: true, data: { repositories } }` and `{ success: false, error }` formats.
+  * Modified `app/api/explorer/resolve/route.ts`: Rewrote POST route to validate, parse inputs, check cache, fetch public metadata (rejecting private repos), run synchronous parsing for compatibility, and return standardized `{ success: true, data: details }` response.
+  * Updated `app/(explorer)/explorer/page.tsx`: Aligned search debouncer and resolution handler to consume the standardized `{ success, data }` response shapes.
 
 ---
 
-## Files Created (Phase 4)
+## Files Created (Phase 5)
 
-* `lib/openai.ts` — Server-side OpenAI client wrapper.
-* `lib/ai/summarize.ts` — Codebase summarization engine.
-* `models/ChatSession.ts` — Mongoose model for chat sessions.
-* `app/api/chat/route.ts` — Chat text-streaming route.
-* `app/api/repos/[repoId]/export/route.ts` — Architecture markdown doc export API.
-* `hooks/use-chat-session.ts` — Custom text-streaming React hook.
-* `components/chat/MessageBubble.tsx` — Chat message bubbles with citations.
-* `components/chat/ChatPanel.tsx` — Technical slide-out chat view.
-* `app/(dashboard)/repos/[repoId]/chat/page.tsx` — Workspace Chat page.
-* `app/(dashboard)/repos/[repoId]/chat/ChatPageClient.tsx` — Client wrapper for the Chat page.
+* `app/(explorer)/layout.tsx` — Explorer Mode route group layout wrapper.
 
 ---
 
-## Files Modified (Phase 4)
+## Files Modified (Phase 5)
 
-* `models/Module.ts` — Added `summaryStatus` enum field.
-* `types/graph.ts` — Added summary fields to `GraphNode` interface.
-* `lib/layout.ts` — Propagated summary fields through force simulation layout nodes.
-* `app/api/repos/[repoId]/graph/route.ts` — Included summary fields in the layout output.
-* `app/api/repos/[repoId]/sync/route.ts` — Wired background AI summarization job.
-* `app/(dashboard)/repos/[repoId]/page.tsx` — Added Chat Panel drawer and AI summary card to the node panel.
-* `files/phases.md` — Marked Phase 4 milestone completed.
-* `files/Memory.md` — Updated for Phase 4 status.
+* `lib/github-search.ts` — Added `defaultBranch` and `canonicalKey` properties to public repository queries.
+* `models/PublicRepository.ts` — Added schema mapping for cache properties.
+* `app/api/explorer/search/route.ts` — Standardized response shape.
+* `app/api/explorer/resolve/route.ts` — Standardized response shape, checked cache, and validated metadata.
+* `app/(explorer)/explorer/page.tsx` — Relocated route file; updated API consumption logic.
+* `files/phases.md` — Marked Phase 5 milestone completed.
+* `files/Memory.md` — Updated for Phase 5 status.
 
 ---
 
@@ -79,72 +59,36 @@ This file is the single source of truth for **where things stand** — never for
 
 ## APIs
 
-* `GET /api/repos` — List org's connected repositories.
-* `POST /api/repos` — Connect a new GitHub repository.
-* `POST /api/repos/[repoId]/sync` — Parse repository & launch progressive AI summarization.
-* `GET /api/repos/[repoId]/graph` — Fetch computed 3D layout coordinates, now with summaries.
-* `POST /api/chat` — Request streaming assistant answers grounded in codebase module data.
-* `GET /api/repos/[repoId]/export` — Generate and export structural architecture Markdown.
+* `GET /api/explorer/search?q=query` — Public repo search (returns `{ success: true, data: { repositories } }`).
+* `POST /api/explorer/resolve` — Resolves URL or shorthand, checks cache, validates accessibility, indexes on miss (returns `{ success: true, data }`).
+* `GET /api/explorer/repo/[...key]` — Retrieve cached Explorer payloads.
 
 ---
 
 ## Models
 
-* **User** (`users`)
-* **Organization** (`organizations`)
-* **Repository** (`repositories`)
-* **Module** (`modules` — stores AST statistics and one-paragraph AI summary)
-* **ChatSession** (`chatsessions` — stores grounded message histories)
+* **PublicRepository** (`publicrepositories` — stores Explorer cached metadata and graphs)
 
 ---
 
 ## Components
 
-* **RepoCard** (`components/shared/RepoCard.tsx`)
-* **HealthScoreRing** (`components/shared/HealthScoreRing.tsx`)
-* **Node** (`components/three/Node.tsx`)
-* **Edge** (`components/three/Edge.tsx`)
-* **DependencyGraphScene** (`components/three/DependencyGraphScene.tsx`)
-* **ChatPanel** (`components/chat/ChatPanel.tsx`)
-* **MessageBubble** (`components/chat/MessageBubble.tsx`)
-
----
-
-## Libraries
-
-* `@clerk/nextjs` (v7.5.22) — Auth & Org mapping.
-* `openai` (v4.x) — Chat completions & streams.
-* `ai` (v7.x) — Vercel AI SDK core utilities.
-* `zod` (v4.4.3) — Schema validator.
-* `@upstash/ratelimit` — Security rate-limiting.
-
----
-
-## Environment Variables
-
-* `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-* `CLERK_SECRET_KEY`
-* `CLERK_WEBHOOK_SECRET`
-* `MONGODB_URI`
-* `GITHUB_CLIENT_ID`
-* `GITHUB_CLIENT_SECRET`
-* `UPSTASH_REDIS_REST_URL`
-* `UPSTASH_REDIS_REST_TOKEN`
-* `OPENAI_API_KEY` (Server-only secret)
+* **GraphCanvasWrapper** (`components/three/GraphCanvasWrapper.tsx`)
+* **GraphSkeleton** (`components/three/GraphSkeleton.tsx`)
 
 ---
 
 ## Validation Results
 
-* **Build**: ✅ Success (Turbopack production build compiles with 0 errors)
-* **TypeScript**: ✅ Success (0 compiler issues)
-* **ESLint**: ✅ Success (0 linting or styling rule violations)
+* **Build**: ✅ Success (production build compiles with 0 errors)
+* **TypeScript**: ✅ Success (0 compiler issues on clean cache)
+* **ESLint**: ✅ Success (0 linting or styling violations)
 * **Prettier**: ✅ Success (Formatted output matches config)
 
 ---
 
 ## Next Steps
 
-* **Next Task**: Phase 5 — Task 1: Build the GitHub Search Service (`lib/github-search.ts`).
-* **Next Phase**: Phase 5 — Repository Discovery & Explorer Foundations.
-* **Current Project Progress**: Phase 4 AI Intelligence Layer is 100% complete and fully verified.
+* **Next Task**: Phase 6 — Task 1: Implement background worker and queues.
+* **Next Phase**: Phase 6 — Shared Repository Cache & Background Indexing Engine.
+* **Current Project Progress**: Phase 5 Explorer Foundations are 100% complete and fully verified.

@@ -17,6 +17,8 @@ export interface PublicSearchResult {
   language: string | null;
   isPrivate: boolean;
   updatedAt: string;
+  defaultBranch: string;
+  canonicalKey: string;
 }
 
 const QuerySchema = z.string().min(1).max(100);
@@ -56,6 +58,8 @@ export async function searchPublicRepositories(
       language: repo.language ?? null,
       isPrivate: repo.private ?? false,
       updatedAt: repo.updated_at ?? new Date().toISOString(),
+      defaultBranch: (repo as { default_branch?: string }).default_branch ?? "main",
+      canonicalKey: `${(repo.owner?.login || "").toLowerCase()}/${repo.name.toLowerCase()}`,
     }));
   } catch (err: unknown) {
     console.error("[searchPublicRepositories]", err);
@@ -97,6 +101,8 @@ export async function getPublicRepoDetails(
       language: data.language ?? null,
       isPrivate: data.private,
       updatedAt: data.updated_at ?? new Date().toISOString(),
+      defaultBranch: data.default_branch,
+      canonicalKey: `${owner.toLowerCase()}/${repo.toLowerCase()}`,
     };
   } catch (err: unknown) {
     const status = (err as { status?: number })?.status;
