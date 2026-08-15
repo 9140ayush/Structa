@@ -18,6 +18,10 @@ export interface GraphNode {
   loc: number; // Lines of code (0 for folders)
   importsCount: number; // Number of outgoing imports
   importedByCount: number; // Number of incoming dependents
+  /** AI-generated summary (populated in Phase 4, empty if pending/failed) */
+  summary?: string;
+  /** AI summary generation status */
+  summaryStatus?: "pending" | "generating" | "done" | "failed" | "skipped";
   /** 3D spatial position computed server-side */
   x: number;
   y: number;

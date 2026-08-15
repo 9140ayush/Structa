@@ -75,16 +75,16 @@ The sequencing below is deliberate: AI intelligence ships first because both mod
 
 This phase builds the AI layer once, correctly, so that both Workspace and Explorer Mode can consume it identically in later phases — no separate AI implementation is built twice.
 
-- [ ] Integrate OpenAI API for per-module summarization (triggered during sync)
-- [ ] Design the summarization pipeline as a reusable service (`lib/ai/summarize.ts`), not repo-coupled, so Explorer's background indexing can call the same function in Phase 6
-- [ ] Build "Ask the Codebase" chat UI (`ChatPanel.tsx`, `MessageBubble.tsx`) with Vercel AI SDK streaming
-- [ ] Implement `ChatSessions` Mongoose model and `POST /api/chat`
-- [ ] Implement citation of specific modules in chat answers (clickable chips linking back to 3D nodes)
-- [ ] Implement semantic code search input (debounced, grounded in module summaries/embeddings)
-- [ ] Implement AI-generated README/architecture doc export
-- [ ] Add rate limiting to `/api/chat` and the summarization trigger (Upstash)
-- [ ] Add graceful AI-failure handling (timeout → fallback message; never block graph rendering on AI failure)
-- [ ] Tag release `v0.4.0`
+- [x] Integrate OpenAI API for per-module summarization (triggered during sync)
+- [x] Design the summarization pipeline as a reusable service (`lib/ai/summarize.ts`), not repo-coupled, so Explorer's background indexing can call the same function in Phase 6
+- [x] Build "Ask the Codebase" chat UI (`ChatPanel.tsx`, `MessageBubble.tsx`) with Vercel AI SDK streaming
+- [x] Implement `ChatSessions` Mongoose model and `POST /api/chat`
+- [x] Implement citation of specific modules in chat answers (clickable chips linking back to 3D nodes)
+- [x] Implement semantic code search input (debounced, grounded in module summaries/embeddings)
+- [x] Implement AI-generated README/architecture doc export
+- [x] Add rate limiting to `/api/chat` and the summarization trigger (Upstash)
+- [x] Add graceful AI-failure handling (timeout → fallback message; never block graph rendering on AI failure)
+- [x] Tag release `v0.4.0`
 
 ---
 

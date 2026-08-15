@@ -22,6 +22,8 @@ import { getRepoTree, getBatchFileContents } from "@/lib/github";
 import { parseRepository, computeHealthScore } from "@/lib/parser";
 import { syncLimiter } from "@/lib/ratelimit";
 import { getOrCreateOrganization } from "@/lib/auth-sync";
+import { summarizeModuleBatch } from "@/lib/ai/summarize";
+import type { SummarizeModuleInput } from "@/lib/ai/summarize";
 import type { SyncResult } from "@/types/graph";
 import mongoose from "mongoose";
 
@@ -207,22 +209,30 @@ export async function POST(
     }
 
     // Second: upsert all modules without import refs (we need _ids first)
-    const upsertOps = parseResult.modules.map((mod) => ({
-      updateOne: {
-        filter: { repoId: repo._id, path: mod.path },
-        update: {
-          $set: {
-            repoId: repo._id,
-            path: mod.path,
-            type: mod.type,
-            loc: mod.loc,
-            complexityScore: mod.complexityScore,
-            summary: "", // populated in Phase 4
+    const upsertOps = parseResult.modules.map((mod) => {
+      const summaryStatusValue: import("@/models/Module").SummaryStatus =
+        mod.type === "folder" ? "skipped" : "pending";
+      return {
+        updateOne: {
+          filter: { repoId: repo._id, path: mod.path },
+          update: {
+            $set: {
+              repoId: repo._id,
+              path: mod.path,
+              type: mod.type,
+              loc: mod.loc,
+              complexityScore: mod.complexityScore,
+            },
+            // Only set summary fields on insert of brand-new modules
+            $setOnInsert: {
+              summary: "" as string,
+              summaryStatus: summaryStatusValue,
+            },
           },
+          upsert: true,
         },
-        upsert: true,
-      },
-    }));
+      };
+    });
 
     if (upsertOps.length > 0) {
       await Module.bulkWrite(upsertOps);
@@ -295,7 +305,9 @@ export async function POST(
     );
 
     // ------------------------------------------------------------------
-    // 13. Return result
+    // 13. Return result immediately — AI summarization runs after response
+    // Rules.md: AI failure must never block graph rendering.
+    // Architecture.md §10: Never block graph rendering on AI failure.
     // ------------------------------------------------------------------
     const result: SyncResult = {
       status: "synced",
@@ -306,8 +318,11 @@ export async function POST(
       syncedAt: new Date().toISOString(),
     };
 
+    // Fire-and-forget: AI summarization runs independently after sync response.
+    // Errors are caught internally in summarizeModuleBatch — never propagate here.
+    void runAISummarization(repo._id, parseResult.modules, contentMap, pathToId);
+
     if (!rateLimitPassed) {
-      // Rate limiter was unavailable — add a warning header
       return NextResponse.json(result, {
         headers: { "X-RateLimit-Warning": "rate-limiter-unavailable" },
       });
@@ -317,5 +332,96 @@ export async function POST(
   } catch (err: unknown) {
     console.error("[POST /api/repos/[repoId]/sync]", err);
     return NextResponse.json({ error: "Internal server error during sync." }, { status: 500 });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// AI Summarization (runs after sync response is sent)
+// ---------------------------------------------------------------------------
+
+/**
+ * Runs AI summarization for all file modules in the repository.
+ * Called fire-and-forget from the sync handler — never blocks the sync response.
+ * All errors are caught internally and written to MongoDB.
+ */
+async function runAISummarization(
+  repoId: mongoose.Types.ObjectId,
+  modules: Array<{
+    path: string;
+    type: "file" | "folder";
+    loc: number;
+    complexityScore: number;
+    imports: string[];
+  }>,
+  contentMap: Map<string, string>,
+  pathToId: Map<string, mongoose.Types.ObjectId>,
+): Promise<void> {
+  try {
+    // Only summarize file modules (folders are skipped inside summarizeModuleBatch)
+    const fileModules = modules.filter((m) => m.type === "file");
+
+    // Build inputs for the summarization service
+    const inputs: SummarizeModuleInput[] = fileModules.map((mod) => {
+      // Count how many modules import this one (reverse index from parseResult)
+      const importedByCount = modules.filter((m) => m.imports.includes(mod.path)).length;
+      return {
+        path: mod.path,
+        type: mod.type,
+        content: contentMap.get(mod.path) ?? "",
+        loc: mod.loc,
+        complexityScore: mod.complexityScore,
+        importsCount: mod.imports.length,
+        importedByCount,
+      };
+    });
+
+    if (inputs.length === 0) return;
+
+    console.log(`[summarize] Starting AI summarization for ${inputs.length} file modules...`);
+
+    // Mark all file modules as 'generating' before starting
+    const generatingIds = fileModules
+      .map((m) => pathToId.get(m.path))
+      .filter((id): id is mongoose.Types.ObjectId => !!id);
+
+    if (generatingIds.length > 0) {
+      await Module.updateMany(
+        { _id: { $in: generatingIds }, summaryStatus: "pending" },
+        { $set: { summaryStatus: "generating" } },
+      );
+    }
+
+    // Run batch summarization (max 3 concurrent — cost-controlled)
+    const batchResult = await summarizeModuleBatch(inputs, 3);
+
+    // Write results back to MongoDB
+    const writeOps = Array.from(batchResult.results.entries())
+      .map(([path, result]) => {
+        const moduleId = pathToId.get(path);
+        if (!moduleId) return null;
+        return {
+          updateOne: {
+            filter: { _id: moduleId },
+            update: {
+              $set: {
+                summary: result.summary,
+                summaryStatus: result.status,
+              },
+            },
+          },
+        };
+      })
+      .filter((op): op is NonNullable<typeof op> => op !== null);
+
+    if (writeOps.length > 0) {
+      await Module.bulkWrite(writeOps);
+    }
+
+    console.log(
+      `[summarize] Completed: ${batchResult.done} done, ${batchResult.skipped} skipped, ${batchResult.failed} failed.`,
+    );
+  } catch (err: unknown) {
+    // Never propagate — this is fire-and-forget
+    console.error("[summarize] Unexpected error in runAISummarization:", err);
   }
 }

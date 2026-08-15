@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, use, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -15,9 +16,19 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Focus,
+  MessageSquare,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { useGraphData } from "@/hooks/use-graph-data";
 import { GraphCanvasWrapper } from "@/components/three/GraphCanvasWrapper";
+import dynamic from "next/dynamic";
+
+// Dynamically import ChatPanel (code-split — Architecture.md §9)
+const ChatPanel = dynamic(
+  () => import("@/components/chat/ChatPanel").then((m) => ({ default: m.ChatPanel })),
+  { ssr: false, loading: () => null },
+);
 
 // ---------------------------------------------------------------------------
 // Props
@@ -33,6 +44,8 @@ interface RepoMapPageProps {
 
 export default function RepoMapPage({ params }: RepoMapPageProps) {
   const { repoId } = use(params);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const {
     data,
@@ -51,6 +64,20 @@ export default function RepoMapPage({ params }: RepoMapPageProps) {
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Handle citation click navigation from chat: ?highlight=path
+  useEffect(() => {
+    const highlight = searchParams.get("highlight");
+    if (highlight && data?.nodes) {
+      const node = data.nodes.find((n) => n.path === highlight);
+      if (node) {
+        setSelectedNodeId(node.id);
+        // Clean query param without re-render loop
+        router.replace(`/repos/${repoId}`, { scroll: false });
+      }
+    }
+  }, [searchParams, data, repoId, setSelectedNodeId, router]);
 
   // Sync trigger handler
   const handleSync = async () => {
@@ -134,6 +161,19 @@ export default function RepoMapPage({ params }: RepoMapPageProps) {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin text-accent" : ""}`} />
             <span>{isSyncing ? "Syncing..." : "Sync Repo"}</span>
+          </button>
+
+          {/* Ask the Codebase chat button */}
+          <button
+            onClick={() => setIsChatOpen((prev) => !prev)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md border font-mono text-xs transition-colors ${
+              isChatOpen
+                ? "bg-accent/15 border-accent/40 text-accent"
+                : "border-border bg-secondary hover:bg-secondary/80 text-foreground"
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Ask Codebase</span>
           </button>
         </div>
       </header>
@@ -273,6 +313,32 @@ export default function RepoMapPage({ params }: RepoMapPageProps) {
                 </code>
               </div>
 
+              {/* AI Summary — Phase 4 */}
+              {selectedNode.kind === "file" && (
+                <div className="mb-6">
+                  <div className="flex items-center gap-1.5 mb-2 font-mono text-xs font-semibold text-foreground">
+                    <Sparkles className="w-4 h-4 text-accent" />
+                    <span>AI Summary</span>
+                  </div>
+
+                  {selectedNode.summaryStatus === "done" && selectedNode.summary ? (
+                    <p className="text-xs font-sans text-muted-foreground leading-relaxed p-3 rounded-md bg-card/60 border border-border">
+                      {selectedNode.summary}
+                    </p>
+                  ) : selectedNode.summaryStatus === "generating" ||
+                    selectedNode.summaryStatus === "pending" ? (
+                    <div className="flex items-center gap-2 p-3 rounded-md bg-card/60 border border-border text-xs font-mono text-muted-foreground">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-accent" />
+                      <span>Generating summary... sync in progress.</span>
+                    </div>
+                  ) : selectedNode.summaryStatus === "failed" ? (
+                    <p className="text-xs font-mono text-danger/80 p-3 rounded-md bg-danger/5 border border-danger/20">
+                      AI summary unavailable for this file.
+                    </p>
+                  ) : null}
+                </div>
+              )}
+
               {/* Outgoing Imports (Dependencies) */}
               <div className="mb-6">
                 <div className="flex items-center gap-1.5 mb-2 font-mono text-xs font-semibold text-foreground">
@@ -329,6 +395,33 @@ export default function RepoMapPage({ params }: RepoMapPageProps) {
                 )}
               </div>
             </motion.aside>
+          )}
+        </AnimatePresence>
+
+        {/* ----------------------------------------------------------------- */}
+        {/* Chat Panel — Slide in from right side (over graph)               */}
+        {/* ----------------------------------------------------------------- */}
+        <AnimatePresence>
+          {isChatOpen && (
+            <motion.div
+              key="chat-panel"
+              initial={{ x: "100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 28 }}
+              className="absolute top-0 right-0 bottom-0 w-full sm:w-[420px] z-40 shadow-2xl"
+            >
+              <ChatPanel
+                repoId={repoId}
+                repoName={data?.nodes[0]?.path.split("/")[0] ?? "Repository"}
+                onCitationClick={(path) => {
+                  const node = data?.nodes.find((n) => n.path === path);
+                  if (node) setSelectedNodeId(node.id);
+                  setIsChatOpen(false);
+                }}
+                onClose={() => setIsChatOpen(false)}
+              />
+            </motion.div>
           )}
         </AnimatePresence>
       </main>

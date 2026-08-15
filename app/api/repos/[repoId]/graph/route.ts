@@ -107,6 +107,8 @@ export async function GET(
       complexityScore: mod.complexityScore ?? 0,
       imports: (mod.imports ?? []).map((id) => (id as mongoose.Types.ObjectId).toString()),
       importedBy: (mod.importedBy ?? []).map((id) => (id as mongoose.Types.ObjectId).toString()),
+      summary: (mod.summary as string) ?? "",
+      summaryStatus: (mod.summaryStatus as string) ?? "pending",
     }));
 
     // 6. Compute 3D Force-directed Layout

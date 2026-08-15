@@ -50,6 +50,10 @@ export interface RawModuleInput {
   complexityScore: number;
   imports: string[]; // Module IDs as strings
   importedBy: string[]; // Module IDs as strings
+  /** AI-generated summary (Phase 4+) */
+  summary?: string;
+  /** AI summary status */
+  summaryStatus?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -86,6 +90,8 @@ export function computeGraphLayout(rawModules: RawModuleInput[]): GraphPayload {
       loc: number;
       importsCount: number;
       importedByCount: number;
+      summary: string;
+      summaryStatus: string;
       x: number;
       y: number;
       z: number;
@@ -121,6 +127,8 @@ export function computeGraphLayout(rawModules: RawModuleInput[]): GraphPayload {
       loc: mod.loc ?? 0,
       importsCount: mod.imports?.length ?? 0,
       importedByCount: mod.importedBy?.length ?? 0,
+      summary: mod.summary ?? "",
+      summaryStatus: mod.summaryStatus ?? "pending",
       x: r * Math.sin(phi) * Math.cos(theta),
       y: r * Math.sin(phi) * Math.sin(theta),
       z: r * Math.cos(phi),
@@ -294,6 +302,8 @@ export function computeGraphLayout(rawModules: RawModuleInput[]): GraphPayload {
       loc: node.loc,
       importsCount: node.importsCount,
       importedByCount: node.importedByCount,
+      summary: node.summary,
+      summaryStatus: node.summaryStatus as GraphNode["summaryStatus"],
       x: Math.round(node.x * 100) / 100,
       y: Math.round(node.y * 100) / 100,
       z: Math.round(node.z * 100) / 100,
