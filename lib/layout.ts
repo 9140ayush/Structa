@@ -318,10 +318,100 @@ export function computeGraphLayout(rawModules: RawModuleInput[]): GraphPayload {
     threshold: LOD_THRESHOLD,
   };
 
+  const cycles = detectCycles(finalNodes, edges);
+
   return {
     nodes: finalNodes,
     edges,
     lod: lodMetadata,
+    cycles,
     computedAt: new Date().toISOString(),
   };
+}
+
+/**
+ * Tarjan's Strongly Connected Components algorithm to find circular dependency loops.
+ */
+function detectCycles(
+  nodes: Array<{ id: string }>,
+  edges: Array<{ from: string; to: string }>,
+): Array<{ nodes: string[]; edges: string[] }> {
+  const adj = new Map<string, string[]>();
+  for (const n of nodes) {
+    adj.set(n.id, []);
+  }
+  for (const e of edges) {
+    if (adj.has(e.from)) {
+      adj.get(e.from)!.push(e.to);
+    }
+  }
+
+  const indexMap = new Map<string, number>();
+  const lowlinkMap = new Map<string, number>();
+  const onStack = new Set<string>();
+  const stack: string[] = [];
+  let index = 0;
+  const sccs: string[][] = [];
+
+  function strongConnect(u: string) {
+    indexMap.set(u, index);
+    lowlinkMap.set(u, index);
+    index++;
+    stack.push(u);
+    onStack.add(u);
+
+    const neighbors = adj.get(u) || [];
+    for (const v of neighbors) {
+      if (!indexMap.has(v)) {
+        strongConnect(v);
+        lowlinkMap.set(u, Math.min(lowlinkMap.get(u)!, lowlinkMap.get(v)!));
+      } else if (onStack.has(v)) {
+        lowlinkMap.set(u, Math.min(lowlinkMap.get(u)!, indexMap.get(v)!));
+      }
+    }
+
+    if (lowlinkMap.get(u) === indexMap.get(u)) {
+      const scc: string[] = [];
+      let w = "";
+      do {
+        w = stack.pop()!;
+        onStack.delete(w);
+        scc.push(w);
+      } while (w !== u);
+      sccs.push(scc);
+    }
+  }
+
+  for (const n of nodes) {
+    if (!indexMap.has(n.id)) {
+      strongConnect(n.id);
+    }
+  }
+
+  const cycles: Array<{ nodes: string[]; edges: string[] }> = [];
+  const selfLoops = new Set<string>();
+  for (const e of edges) {
+    if (e.from === e.to) {
+      selfLoops.add(e.from);
+    }
+  }
+
+  for (const scc of sccs) {
+    const isCycle = scc.length > 1 || (scc.length === 1 && selfLoops.has(scc[0]!));
+    if (isCycle) {
+      const sccSet = new Set(scc);
+      const sccEdges: string[] = [];
+      for (const e of edges) {
+        if (sccSet.has(e.from) && sccSet.has(e.to)) {
+          sccEdges.push(`${e.from}→${e.to}`);
+        }
+      }
+      cycles.push({
+        nodes: scc,
+        edges: sccEdges,
+      });
+    }
+  }
+
+  return cycles;
 }

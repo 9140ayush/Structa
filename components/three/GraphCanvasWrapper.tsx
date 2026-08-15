@@ -17,6 +17,11 @@ interface GraphCanvasWrapperProps {
   hoveredNodeId: string | null;
   onSelectNode: (nodeId: string | null) => void;
   onHoverNode: (nodeId: string | null) => void;
+  showComplexityHeatmap?: boolean;
+  showCircularDeps?: boolean;
+  cycleNodeIds?: Set<string>;
+  cycleEdgeIds?: Set<string>;
+  annotatedNodeIds?: Set<string>;
 }
 
 export function GraphCanvasWrapper(props: GraphCanvasWrapperProps) {

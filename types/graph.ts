@@ -28,6 +28,8 @@ export interface GraphNode {
   z: number;
   /** Level-of-Detail flag (true if node is low priority during LOD reduction) */
   isLowPriorityLOD?: boolean;
+  /** Phase 8: Architecture diff status coloring */
+  diffStatus?: "added" | "removed" | "changed" | "unchanged";
 }
 
 export interface GraphEdge {
@@ -36,6 +38,8 @@ export interface GraphEdge {
   to: string; // GraphNode.id
   fromPath: string;
   toPath: string;
+  /** Phase 8: Architecture diff status coloring */
+  diffStatus?: "added" | "removed" | "unchanged";
 }
 
 export interface GraphLODMetadata {
@@ -51,6 +55,10 @@ export interface GraphPayload {
   lod: GraphLODMetadata;
   /** ISO timestamp of when this graph layout was computed */
   computedAt: string;
+  cycles?: Array<{
+    nodes: string[];
+    edges: string[];
+  }>;
 }
 
 // ---------------------------------------------------------------------------

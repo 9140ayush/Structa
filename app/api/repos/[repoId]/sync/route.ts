@@ -18,8 +18,10 @@ import { z } from "zod";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Repository } from "@/models/Repository";
 import { Module } from "@/models/Module";
-import { getRepoTree, getBatchFileContents } from "@/lib/github";
+import { Snapshot } from "@/models/Snapshot";
+import { getRepoTree, getBatchFileContents, getRepoHeadSha } from "@/lib/github";
 import { parseRepository, computeHealthScore } from "@/lib/parser";
+import { computeGraphLayout, type RawModuleInput } from "@/lib/layout";
 import { syncLimiter } from "@/lib/ratelimit";
 import { getOrCreateOrganization } from "@/lib/auth-sync";
 import { summarizeModuleBatch } from "@/lib/ai/summarize";
@@ -305,6 +307,65 @@ export async function POST(
     );
 
     // ------------------------------------------------------------------
+    // 12.5. Create Architecture Snapshot (Task 3)
+    // ------------------------------------------------------------------
+    try {
+      const headData = await getRepoHeadSha(token, repoHandle.owner, repoHandle.repo);
+      const commitSha = headData.commitSha;
+
+      // Compute graph layout for this version's snapshot
+      const rawInputsForLayout: RawModuleInput[] = allModuleDocs.map((mod) => {
+        const matchedMod = parseResult.modules.find((m) => m.path === mod.path);
+        const importPaths = matchedMod?.imports || [];
+        const importedByPaths = parseResult.modules
+          .filter((m) => m.imports.includes(mod.path))
+          .map((m) => m.path);
+
+        const importIds = importPaths
+          .map((p) => pathToId.get(p)?.toString())
+          .filter((id): id is string => !!id);
+        const importedByIds = importedByPaths
+          .map((p) => pathToId.get(p)?.toString())
+          .filter((id): id is string => !!id);
+
+        return {
+          _id: mod._id.toString(),
+          path: mod.path,
+          type: mod.type,
+          loc: mod.loc ?? 0,
+          complexityScore: mod.complexityScore ?? 0,
+          imports: importIds,
+          importedBy: importedByIds,
+          summary: mod.summary || "",
+          summaryStatus: mod.summaryStatus || "pending",
+        };
+      });
+
+      const currentGraphPayload = computeGraphLayout(rawInputsForLayout);
+
+      // Enforce single snapshot per commit
+      const existingSnap = await Snapshot.findOne({ repoId: repo._id, commitSha });
+      if (!existingSnap) {
+        // Find previous snapshot
+        const prevSnap = await Snapshot.findOne({ repoId: repo._id }).sort({ createdAt: -1 });
+
+        let diffFromPrevious = null;
+        if (prevSnap && prevSnap.graphJson) {
+          diffFromPrevious = calculateSnapshotDiff(prevSnap.graphJson as GraphLike, currentGraphPayload);
+        }
+
+        await Snapshot.create({
+          repoId: repo._id,
+          commitSha,
+          graphJson: currentGraphPayload,
+          diffFromPrevious,
+        });
+      }
+    } catch (snapErr: unknown) {
+      console.warn("[sync] Failed to create architecture snapshot:", snapErr);
+    }
+
+    // ------------------------------------------------------------------
     // 13. Return result immediately — AI summarization runs after response
     // Rules.md: AI failure must never block graph rendering.
     // Architecture.md §10: Never block graph rendering on AI failure.
@@ -424,4 +485,93 @@ async function runAISummarization(
     // Never propagate — this is fire-and-forget
     console.error("[summarize] Unexpected error in runAISummarization:", err);
   }
+}
+
+interface GraphNodeLike {
+  id: string;
+  path: string;
+  name: string;
+  kind: string;
+  x: number;
+  y: number;
+  z: number;
+  loc: number;
+  complexityScore: number;
+}
+
+interface GraphEdgeLike {
+  id: string;
+  from: string;
+  to: string;
+  fromPath: string;
+  toPath: string;
+}
+
+interface GraphLike {
+  nodes?: GraphNodeLike[];
+  edges?: GraphEdgeLike[];
+}
+
+/**
+ * Calculates differences between two graph visualization states.
+ * Detects added/removed/changed nodes and edges.
+ */
+function calculateSnapshotDiff(oldGraph: GraphLike, newGraph: GraphLike) {
+  const oldNodes = new Map<string, GraphNodeLike>((oldGraph?.nodes || []).map((n) => [n.path, n]));
+  const newNodes = new Map<string, GraphNodeLike>((newGraph?.nodes || []).map((n) => [n.path, n]));
+
+  const addedNodes: string[] = [];
+  const removedNodes: string[] = [];
+  const changedNodes: string[] = [];
+  const unchangedNodes: string[] = [];
+
+  for (const [path, node] of newNodes.entries()) {
+    const oldNode = oldNodes.get(path);
+    if (!oldNode) {
+      addedNodes.push(path);
+    } else {
+      const hasChanged =
+        oldNode.loc !== node.loc || oldNode.complexityScore !== node.complexityScore;
+      if (hasChanged) {
+        changedNodes.push(path);
+      } else {
+        unchangedNodes.push(path);
+      }
+    }
+  }
+
+  for (const path of oldNodes.keys()) {
+    if (!newNodes.has(path)) {
+      removedNodes.push(path);
+    }
+  }
+
+  const oldEdges = new Set((oldGraph?.edges || []).map((e) => `${e.fromPath}->${e.toPath}`));
+  const newEdges = new Set((newGraph?.edges || []).map((e) => `${e.fromPath}->${e.toPath}`));
+
+  const addedEdges: Array<{ fromPath: string; toPath: string }> = [];
+  const removedEdges: Array<{ fromPath: string; toPath: string }> = [];
+
+  for (const edge of newGraph?.edges || []) {
+    const key = `${edge.fromPath}->${edge.toPath}`;
+    if (!oldEdges.has(key)) {
+      addedEdges.push({ fromPath: edge.fromPath, toPath: edge.toPath });
+    }
+  }
+
+  for (const edge of oldGraph?.edges || []) {
+    const key = `${edge.fromPath}->${edge.toPath}`;
+    if (!newEdges.has(key)) {
+      removedEdges.push({ fromPath: edge.fromPath, toPath: edge.toPath });
+    }
+  }
+
+  return {
+    addedNodes,
+    removedNodes,
+    changedNodes,
+    unchangedNodes,
+    addedEdges,
+    removedEdges,
+  };
 }

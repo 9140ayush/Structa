@@ -15,13 +15,23 @@ interface EdgeProps {
   toNode: GraphNode;
   isActive: boolean; // Connected to hovered or selected node
   isLODActive: boolean;
+  showCircularDeps?: boolean;
+  isPartOfCycle?: boolean;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function Edge({ edge, fromNode, toNode, isActive, isLODActive }: EdgeProps) {
+export function Edge({
+  edge,
+  fromNode,
+  toNode,
+  isActive,
+  isLODActive,
+  showCircularDeps = false,
+  isPartOfCycle = false,
+}: EdgeProps) {
   const lineRef = useRef<THREE.Line>(null);
   const particleRef = useRef<THREE.Mesh>(null);
 
@@ -50,9 +60,35 @@ export function Edge({ edge, fromNode, toNode, isActive, isLODActive }: EdgeProp
     return geom;
   }, [startVec, endVec]);
 
-  // Color & Opacity per design.md
-  const edgeColor = isActive ? "#3DDC97" : "#7C9CFF"; // Signal Green when active, Ion Blue when resting
-  const opacity = isActive ? 0.95 : isLODActive ? 0.2 : 0.4;
+  // Color & Opacity
+  let edgeColor = isActive ? "#3DDC97" : "#7C9CFF"; // Signal Green when active, Ion Blue when resting
+  let opacity = isActive ? 0.95 : isLODActive ? 0.2 : 0.4;
+  let linewidth = isActive ? 2 : 1;
+
+  if (edge.diffStatus) {
+    if (edge.diffStatus === "added") {
+      edgeColor = "#22C55E";
+      opacity = 0.95;
+      linewidth = 2.5;
+    } else if (edge.diffStatus === "removed") {
+      edgeColor = "#EF4444";
+      opacity = 0.95;
+      linewidth = 2.5;
+    } else {
+      edgeColor = "#4B5563";
+      opacity = 0.15;
+      linewidth = 1;
+    }
+  } else if (showCircularDeps) {
+    if (isPartOfCycle) {
+      edgeColor = "#F5A623";
+      opacity = 0.95;
+      linewidth = 3;
+    } else {
+      opacity = 0.05;
+      linewidth = 1;
+    }
+  }
 
   // Animated directional particle flow along the edge
   useFrame(({ clock }) => {
@@ -67,19 +103,16 @@ export function Edge({ edge, fromNode, toNode, isActive, isLODActive }: EdgeProp
       {/* Edge Line */}
       {/* @ts-expect-error Three.js line JSX element binding in R3F */}
       <line ref={lineRef} geometry={geometry}>
-        <lineBasicMaterial
-          color={edgeColor}
-          transparent
-          opacity={opacity}
-          linewidth={isActive ? 2 : 1}
-        />
+        <lineBasicMaterial color={edgeColor} transparent opacity={opacity} linewidth={linewidth} />
       </line>
 
       {/* Animated Directional Flow Particle */}
-      <mesh ref={particleRef}>
-        <sphereGeometry args={[isActive ? 0.25 : 0.15, 8, 8]} />
-        <meshBasicMaterial color={edgeColor} transparent opacity={isActive ? 1.0 : 0.6} />
-      </mesh>
+      {(!showCircularDeps || isPartOfCycle) && (
+        <mesh ref={particleRef}>
+          <sphereGeometry args={[isActive ? 0.25 : 0.15, 8, 8]} />
+          <meshBasicMaterial color={edgeColor} transparent opacity={isActive ? 1.0 : 0.6} />
+        </mesh>
+      )}
     </group>
   );
 }

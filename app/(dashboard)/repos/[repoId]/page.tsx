@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use, useEffect } from "react";
+import React, { useState, use, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -66,6 +66,20 @@ export default function RepoMapPage({ params }: RepoMapPageProps) {
   const [syncError, setSyncError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  // Phase 8 visual toggles and states
+  const [showComplexityHeatmap, setShowComplexityHeatmap] = useState(false);
+  const [showCircularDeps, setShowCircularDeps] = useState(false);
+
+  // Annotations state variables
+  const [annotations, setAnnotations] = useState<
+    Array<{ _id: string; content: string; createdAt: string }>
+  >([]);
+  const [isLoadingAnnotations, setIsLoadingAnnotations] = useState(false);
+  const [annotationInput, setAnnotationInput] = useState("");
+  const [isSavingAnnotation, setIsSavingAnnotation] = useState(false);
+  const [annotationError, setAnnotationError] = useState<string | null>(null);
+  const [annotatedNodeIds, setAnnotatedNodeIds] = useState<Set<string>>(new Set());
+
   // Handle citation click navigation from chat: ?highlight=path
   useEffect(() => {
     const highlight = searchParams.get("highlight");
@@ -78,6 +92,134 @@ export default function RepoMapPage({ params }: RepoMapPageProps) {
       }
     }
   }, [searchParams, data, repoId, setSelectedNodeId, router]);
+
+  // Log module visits (Task 9)
+  useEffect(() => {
+    if (selectedNodeId && selectedNode) {
+      void fetch(`/api/analytics/${repoId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ moduleId: selectedNodeId }),
+      }).catch((err) => console.warn("[visit-log] Failed to log visit:", err));
+    }
+  }, [selectedNodeId, selectedNode, repoId]);
+
+  // Fetch all annotated node IDs for this repository to show graph indicators (Task 2)
+  const fetchAnnotatedNodes = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/annotations?repositoryId=${repoId}`);
+      const json = await res.json();
+      if (json.success) {
+        const ids = new Set<string>(
+          (json.data.annotations || []).map((a: { moduleId: string }) => a.moduleId),
+        );
+        setAnnotatedNodeIds(ids);
+      }
+    } catch (err) {
+      console.error("[annotations-badge] Failed to fetch annotated nodes:", err);
+    }
+  }, [repoId]);
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      fetchAnnotatedNodes();
+    });
+  }, [fetchAnnotatedNodes, selectedNodeId]);
+
+  // Fetch specific module annotations when drawer is open
+  useEffect(() => {
+    if (selectedNodeId) {
+      Promise.resolve().then(() => {
+        setIsLoadingAnnotations(true);
+        setAnnotationError(null);
+      });
+      fetch(`/api/annotations?repositoryId=${repoId}&moduleId=${selectedNodeId}`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success) {
+            setAnnotations(json.data.annotations || []);
+          } else {
+            setAnnotationError(json.error || "Failed to load annotations.");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          setAnnotationError("Network error loading annotations.");
+        })
+        .finally(() => setIsLoadingAnnotations(false));
+    } else {
+      Promise.resolve().then(() => {
+        setAnnotations([]);
+      });
+    }
+  }, [selectedNodeId, repoId]);
+
+  // Add Annotation Action
+  const handleAddAnnotation = async () => {
+    if (!annotationInput.trim() || !selectedNodeId) return;
+    setIsSavingAnnotation(true);
+    setAnnotationError(null);
+    try {
+      const res = await fetch("/api/annotations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          repositoryId: repoId,
+          moduleId: selectedNodeId,
+          content: annotationInput.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to save annotation.");
+      }
+      setAnnotations((prev) => [json.data, ...prev]);
+      setAnnotationInput("");
+      fetchAnnotatedNodes();
+    } catch (err: unknown) {
+      setAnnotationError((err as Error).message);
+    } finally {
+      setIsSavingAnnotation(false);
+    }
+  };
+
+  // Delete Annotation Action
+  const handleDeleteAnnotation = async (annId: string) => {
+    try {
+      const res = await fetch(`/api/annotations/${annId}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Failed to delete annotation.");
+      }
+      setAnnotations((prev) => prev.filter((a) => a._id !== annId));
+      fetchAnnotatedNodes();
+    } catch (err: unknown) {
+      alert((err as Error).message);
+    }
+  };
+
+  // Memoize cycle participating elements for fast O(1) graph styling updates (Task 6)
+  const cycleNodeIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!data?.cycles) return set;
+    for (const cycle of data.cycles) {
+      for (const nodeId of cycle.nodes) {
+        set.add(nodeId);
+      }
+    }
+    return set;
+  }, [data]);
+
+  const cycleEdgeIds = useMemo(() => {
+    const set = new Set<string>();
+    if (!data?.cycles) return set;
+    for (const cycle of data.cycles) {
+      for (const edgeId of cycle.edges) {
+        set.add(edgeId);
+      }
+    }
+    return set;
+  }, [data]);
 
   // Sync trigger handler
   const handleSync = async () => {
@@ -154,6 +296,22 @@ export default function RepoMapPage({ params }: RepoMapPageProps) {
             <span className="hidden lg:inline text-xs font-mono text-danger">{syncError}</span>
           )}
 
+          <Link
+            href={`/repos/${repoId}/analytics`}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-secondary hover:bg-secondary/80 text-foreground font-mono text-xs transition-colors"
+          >
+            <Activity className="w-3.5 h-3.5 text-accent" />
+            <span className="hidden sm:inline">Analytics</span>
+          </Link>
+
+          <Link
+            href={`/repos/${repoId}/snapshots`}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-secondary hover:bg-secondary/80 text-foreground font-mono text-xs transition-colors"
+          >
+            <Layers className="w-3.5 h-3.5 text-primary" />
+            <span className="hidden sm:inline">Snapshots</span>
+          </Link>
+
           <button
             onClick={handleSync}
             disabled={isSyncing}
@@ -218,7 +376,52 @@ export default function RepoMapPage({ params }: RepoMapPageProps) {
               hoveredNodeId={hoveredNodeId}
               onSelectNode={setSelectedNodeId}
               onHoverNode={setHoveredNodeId}
+              showComplexityHeatmap={showComplexityHeatmap}
+              showCircularDeps={showCircularDeps}
+              cycleNodeIds={cycleNodeIds}
+              cycleEdgeIds={cycleEdgeIds}
+              annotatedNodeIds={annotatedNodeIds}
             />
+
+            {/* Floating Graph Controls Panel */}
+            <div className="absolute bottom-6 left-6 z-10 flex flex-col gap-2 p-3.5 rounded-xl border border-border bg-surface/90 backdrop-blur-md shadow-2xl font-mono text-xs max-w-xs">
+              <span className="text-[10px] uppercase text-muted-foreground block font-bold mb-1 tracking-wider">
+                Graph Controls
+              </span>
+
+              <label className="flex items-center justify-between gap-4 cursor-pointer py-1 text-foreground hover:text-accent select-none">
+                <span>Complexity Heatmap</span>
+                <input
+                  type="checkbox"
+                  checked={showComplexityHeatmap}
+                  onChange={(e) => setShowComplexityHeatmap(e.target.checked)}
+                  className="rounded border-border text-accent focus:ring-accent bg-background w-4 h-4 cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between gap-4 cursor-pointer py-1 text-foreground hover:text-accent select-none">
+                <span>Circular Dependencies</span>
+                <input
+                  type="checkbox"
+                  checked={showCircularDeps}
+                  onChange={(e) => setShowCircularDeps(e.target.checked)}
+                  className="rounded border-border text-accent focus:ring-accent bg-background w-4 h-4 cursor-pointer"
+                />
+              </label>
+
+              {showCircularDeps && (
+                <div className="pt-1.5 border-t border-border mt-1 text-[10px] text-muted-foreground leading-normal">
+                  {cycleNodeIds.size > 0 ? (
+                    <span className="text-warning font-semibold">
+                      ⚠️ {data.cycles?.length} circular paths detected ({cycleNodeIds.size} modules
+                      affected).
+                    </span>
+                  ) : (
+                    <span className="text-success">No circular dependencies.</span>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* LOD Info Toast */}
             {data.lod.isLODActive && (
@@ -393,6 +596,68 @@ export default function RepoMapPage({ params }: RepoMapPageProps) {
                     ))}
                   </ul>
                 )}
+              </div>
+
+              {/* Sticky-Note Annotations Section (Task 2) */}
+              <div className="border-t border-border pt-5 mt-4">
+                <div className="flex items-center gap-1.5 mb-3 font-mono text-xs font-semibold text-foreground">
+                  <span>📝</span>
+                  <span>Module Annotations</span>
+                </div>
+
+                {isLoadingAnnotations ? (
+                  <div className="flex items-center gap-2 py-3 text-xs font-mono text-muted-foreground">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-accent" />
+                    <span>Loading annotations...</span>
+                  </div>
+                ) : annotations.length === 0 ? (
+                  <p className="text-xs font-mono text-muted-foreground italic mb-4">
+                    No annotations yet. Add a note to help your team understand this module.
+                  </p>
+                ) : (
+                  <div className="space-y-3 mb-4 max-h-56 overflow-y-auto pr-1">
+                    {annotations.map((ann) => (
+                      <div
+                        key={ann._id}
+                        className="p-3 rounded-md bg-card/60 border border-border space-y-2"
+                      >
+                        <p className="text-xs font-sans text-foreground leading-normal break-all">
+                          {ann.content}
+                        </p>
+                        <div className="flex items-center justify-between font-mono text-[9px] text-muted-foreground">
+                          <span>{new Date(ann.createdAt).toLocaleDateString()}</span>
+                          <button
+                            onClick={() => handleDeleteAnnotation(ann._id)}
+                            className="text-danger hover:underline hover:text-danger/80"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Annotation Form */}
+                <div className="space-y-2.5">
+                  <textarea
+                    rows={2}
+                    value={annotationInput}
+                    onChange={(e) => setAnnotationInput(e.target.value)}
+                    placeholder="Refactor this service before adding new features..."
+                    className="w-full p-2.5 rounded-md border border-border bg-card/85 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent font-sans transition-all"
+                  />
+                  {annotationError && (
+                    <p className="text-[10px] font-mono text-danger">{annotationError}</p>
+                  )}
+                  <button
+                    onClick={handleAddAnnotation}
+                    disabled={isSavingAnnotation || !annotationInput.trim()}
+                    className="w-full py-1.5 rounded-md bg-accent hover:bg-accent/90 disabled:bg-muted/30 text-background font-mono text-xs font-bold transition-colors"
+                  >
+                    {isSavingAnnotation ? "Saving..." : "Add Note"}
+                  </button>
+                </div>
               </div>
             </motion.aside>
           )}

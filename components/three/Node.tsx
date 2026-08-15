@@ -17,6 +17,10 @@ interface NodeProps {
   isLODActive: boolean;
   onSelect: (nodeId: string) => void;
   onHover: (nodeId: string | null) => void;
+  showComplexityHeatmap?: boolean;
+  showCircularDeps?: boolean;
+  isPartOfCycle?: boolean;
+  hasAnnotation?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -41,7 +45,18 @@ function getComplexityColor(score: number): THREE.Color {
 // Component
 // ---------------------------------------------------------------------------
 
-export function Node({ node, isSelected, isHovered, isLODActive, onSelect, onHover }: NodeProps) {
+export function Node({
+  node,
+  isSelected,
+  isHovered,
+  isLODActive,
+  onSelect,
+  onHover,
+  showComplexityHeatmap = false,
+  showCircularDeps = false,
+  isPartOfCycle = false,
+  hasAnnotation = false,
+}: NodeProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [internalHovered, setInternalHovered] = useState(false);
 
@@ -52,24 +67,53 @@ export function Node({ node, isSelected, isHovered, isLODActive, onSelect, onHov
     return 0.6 + Math.min(Math.log10(Math.max(1, node.loc)) * 0.5, 1.6);
   }, [node.kind, node.loc]);
 
-  // Color calculation based on complexity score
+  // Color calculation based on active mode
   const baseColor = useMemo(() => {
-    if (node.kind === "folder") return new THREE.Color("#7C9CFF"); // Accent Ion Blue for folders
-    return getComplexityColor(node.complexityScore);
-  }, [node.kind, node.complexityScore]);
+    if (node.diffStatus) {
+      if (node.diffStatus === "added") return new THREE.Color("#22C55E");
+      if (node.diffStatus === "removed") return new THREE.Color("#EF4444");
+      if (node.diffStatus === "changed") return new THREE.Color("#F5A623");
+      return new THREE.Color("#4B5563"); // unchanged
+    }
+    if (showCircularDeps && isPartOfCycle) {
+      return new THREE.Color("#F5A623"); // Warning Orange for cycles
+    }
+    if (showComplexityHeatmap) {
+      if (node.kind === "folder") return new THREE.Color("#7C9CFF"); // Accent Ion Blue for folders
+      return getComplexityColor(node.complexityScore);
+    }
+    // Normal graph coloring: Blue for folders, cool slate/grey for files
+    if (node.kind === "folder") return new THREE.Color("#7C9CFF");
+    return new THREE.Color("#4B5563");
+  }, [
+    node.kind,
+    node.complexityScore,
+    showComplexityHeatmap,
+    showCircularDeps,
+    isPartOfCycle,
+    node.diffStatus,
+  ]);
 
   // Emissive color on hover/selection
   const emissiveColor = useMemo(() => {
+    if (node.diffStatus) {
+      if (node.diffStatus === "added") return new THREE.Color("#22C55E");
+      if (node.diffStatus === "removed") return new THREE.Color("#EF4444");
+      if (node.diffStatus === "changed") return new THREE.Color("#F5A623");
+      return new THREE.Color("#000000");
+    }
+    if (showCircularDeps && isPartOfCycle) return new THREE.Color("#F5A623");
     if (isSelected) return new THREE.Color("#3DDC97"); // Primary glow for selected
     if (isHovered || internalHovered) return new THREE.Color("#7C9CFF"); // Ion Blue glow for hover
     return new THREE.Color("#000000");
-  }, [isSelected, isHovered, internalHovered]);
+  }, [isSelected, isHovered, internalHovered, showCircularDeps, isPartOfCycle, node.diffStatus]);
 
   // Pulse animation on hover/selection
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
-    if (isSelected || isHovered || internalHovered) {
-      const scaleFactor = 1 + Math.sin(clock.getElapsedTime() * 4) * 0.08;
+    if (isSelected || isHovered || internalHovered || (showCircularDeps && isPartOfCycle)) {
+      const pulseSpeed = showCircularDeps && isPartOfCycle ? 6 : 4;
+      const scaleFactor = 1 + Math.sin(clock.getElapsedTime() * pulseSpeed) * 0.08;
       meshRef.current.scale.setScalar(scaleFactor);
     } else {
       meshRef.current.scale.setScalar(1.0);
@@ -112,15 +156,19 @@ export function Node({ node, isSelected, isHovered, isLODActive, onSelect, onHov
           emissiveIntensity={isSelected ? 0.8 : isHovered || internalHovered ? 0.5 : 0.1}
           roughness={0.3}
           metalness={0.2}
+          transparent={showCircularDeps}
+          opacity={showCircularDeps ? (isPartOfCycle ? 1.0 : 0.15) : 1.0}
         />
       </mesh>
 
       {/* Emissive Selection Ring */}
-      {(isSelected || isHovered || internalHovered) && (
+      {(isSelected || isHovered || internalHovered || (showCircularDeps && isPartOfCycle)) && (
         <mesh>
           <ringGeometry args={[radius * 1.3, radius * 1.5, 32]} />
           <meshBasicMaterial
-            color={isSelected ? "#3DDC97" : "#7C9CFF"}
+            color={
+              isSelected ? "#3DDC97" : showCircularDeps && isPartOfCycle ? "#F5A623" : "#7C9CFF"
+            }
             side={THREE.DoubleSide}
             transparent
             opacity={0.7}
@@ -146,6 +194,7 @@ export function Node({ node, isSelected, isHovered, isLODActive, onSelect, onHov
                   : "bg-surface/80 border-border text-text-primary"
             }`}
           >
+            {hasAnnotation && <span className="mr-1 text-warning">📝</span>}
             {node.name}
             {node.kind === "file" && (
               <span className="ml-1.5 text-[10px] text-muted-foreground">({node.loc} LOC)</span>

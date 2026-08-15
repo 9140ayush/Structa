@@ -19,6 +19,11 @@ interface DependencyGraphSceneProps {
   hoveredNodeId: string | null;
   onSelectNode: (nodeId: string | null) => void;
   onHoverNode: (nodeId: string | null) => void;
+  showComplexityHeatmap?: boolean;
+  showCircularDeps?: boolean;
+  cycleNodeIds?: Set<string>;
+  cycleEdgeIds?: Set<string>;
+  annotatedNodeIds?: Set<string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -87,6 +92,11 @@ function SceneContent({
   hoveredNodeId,
   onSelectNode,
   onHoverNode,
+  showComplexityHeatmap = false,
+  showCircularDeps = false,
+  cycleNodeIds = new Set(),
+  cycleEdgeIds = new Set(),
+  annotatedNodeIds = new Set(),
 }: DependencyGraphSceneProps) {
   // Map nodes for fast lookup by ID
   const nodeMap = useMemo(() => {
@@ -148,6 +158,8 @@ function SceneContent({
               toNode={toNode}
               isActive={activeEdgeIds.has(edge.id)}
               isLODActive={data.lod.isLODActive}
+              showCircularDeps={showCircularDeps}
+              isPartOfCycle={cycleEdgeIds.has(edge.id)}
             />
           );
         })}
@@ -164,6 +176,10 @@ function SceneContent({
             isLODActive={data.lod.isLODActive}
             onSelect={(id) => onSelectNode(id)}
             onHover={(id) => onHoverNode(id)}
+            showComplexityHeatmap={showComplexityHeatmap}
+            showCircularDeps={showCircularDeps}
+            isPartOfCycle={cycleNodeIds.has(node.id)}
+            hasAnnotation={annotatedNodeIds.has(node.id)}
           />
         ))}
       </group>
