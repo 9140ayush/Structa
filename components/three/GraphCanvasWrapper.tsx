@@ -26,7 +26,7 @@ interface GraphCanvasWrapperProps {
 
 export function GraphCanvasWrapper(props: GraphCanvasWrapperProps) {
   return (
-    <div className="w-full h-full min-h-[500px] rounded-lg overflow-hidden border border-border bg-background">
+    <div className="relative w-full h-full min-h-[500px] rounded-lg overflow-hidden border border-border bg-background">
       <DependencyGraphScene {...props} />
     </div>
   );

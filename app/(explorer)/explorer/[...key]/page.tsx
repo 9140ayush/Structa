@@ -305,14 +305,16 @@ export default function RepositoryExplorerPage({ params }: PageProps) {
   return (
     <div className="flex-1 w-full h-[calc(100vh-64px)] relative flex bg-background text-foreground overflow-hidden">
       {/* 3D Canvas Canvas Viewport */}
-      <main className="relative flex-1 h-full overflow-hidden z-10">
-        <GraphCanvasWrapper
-          data={activeRepo.graphPayload}
-          selectedNodeId={selectedNodeId}
-          hoveredNodeId={hoveredNodeId}
-          onSelectNode={setSelectedNodeId}
-          onHoverNode={setHoveredNodeId}
-        />
+      <main className="relative flex-1 w-full h-full overflow-hidden z-10">
+        <div className="w-full h-full relative">
+          <GraphCanvasWrapper
+            data={activeRepo.graphPayload}
+            selectedNodeId={selectedNodeId}
+            hoveredNodeId={hoveredNodeId}
+            onSelectNode={setSelectedNodeId}
+            onHoverNode={setHoveredNodeId}
+          />
+        </div>
 
         {/* Back Link to Search Landing */}
         <Link
