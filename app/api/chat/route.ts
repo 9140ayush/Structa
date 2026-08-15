@@ -2,16 +2,7 @@
  * POST /api/chat
  *
  * Grounded repository chat endpoint with OpenAI streaming.
- *
- * Flow:
- * 1. Clerk authentication
- * 2. Zod input validation
- * 3. Repository ownership verification (org isolation)
- * 4. Rate limiting (Upstash chatLimiter: 60/hr/user)
- * 5. Retrieve module summaries for grounding (top modules by complexity)
- * 6. Build grounded system prompt
- * 7. Stream response via OpenAI SDK (server-sent events)
- * 8. Persist chat session to MongoDB
+ * Supports both Workspace Mode (ObjectId) and Explorer Mode (canonicalKey).
  *
  * Rules.md §2: AI calls never from Client Components.
  * Rules.md §2: All external input validated with Zod.
@@ -23,6 +14,7 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Repository } from "@/models/Repository";
+import { PublicRepository } from "@/models/PublicRepository";
 import { Module } from "@/models/Module";
 import { ChatSession } from "@/models/ChatSession";
 import { chatLimiter } from "@/lib/ratelimit";
@@ -53,39 +45,10 @@ const ChatRequestSchema = z.object({
 
 export async function POST(req: NextRequest): Promise<Response> {
   // ------------------------------------------------------------------
-  // 1. Auth
+  // 1. Auth & Mode Detection
   // ------------------------------------------------------------------
   const { userId, orgId } = await auth();
 
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
-  }
-
-  // ------------------------------------------------------------------
-  // 2. Rate limiting (fail-open if Redis unavailable)
-  // ------------------------------------------------------------------
-  try {
-    const { success, limit, remaining, reset } = await chatLimiter.limit(userId);
-    if (!success) {
-      return NextResponse.json(
-        { error: "Rate limit exceeded. Maximum 60 chat requests per hour." },
-        {
-          status: 429,
-          headers: {
-            "X-RateLimit-Limit": String(limit),
-            "X-RateLimit-Remaining": String(remaining),
-            "X-RateLimit-Reset": String(reset),
-          },
-        },
-      );
-    }
-  } catch (rlErr: unknown) {
-    console.warn("[chat] Rate limiter unavailable, failing open:", rlErr);
-  }
-
-  // ------------------------------------------------------------------
-  // 3. Parse & validate body
-  // ------------------------------------------------------------------
   let body: unknown;
   try {
     body = await req.json();
@@ -103,58 +66,136 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   const { repoId, messages } = parsed.data;
 
-  // ------------------------------------------------------------------
-  // 4. Verify repo ownership (org isolation — critical security gate)
-  // ------------------------------------------------------------------
-  await connectToDatabase();
+  // Mode detection: canonicalKey containing slash indicates Explorer Mode
+  const isExplorer = repoId.includes("/");
 
-  const dbOrg = await getOrCreateOrganization(orgId, userId);
-
-  const repo = await Repository.findOne({
-    _id: new mongoose.Types.ObjectId(repoId),
-    orgId: dbOrg._id,
-  });
-
-  if (!repo) {
-    return NextResponse.json({ error: "Repository not found or access denied." }, { status: 404 });
+  if (!isExplorer && !userId) {
+    return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
   }
 
   // ------------------------------------------------------------------
-  // 5. Retrieve module summaries for grounding
+  // 2. Rate limiting (fail-open if Redis unavailable)
   // ------------------------------------------------------------------
-  const groundingModules = await Module.find({
-    repoId: repo._id,
-    summaryStatus: "done",
-    type: "file",
-    summary: { $ne: "" },
-  })
-    .sort({ complexityScore: -1 })
-    .limit(30)
-    .select("path summary complexityScore loc")
-    .lean();
-
-  const allModulePaths = await Module.find({ repoId: repo._id }).select("_id path").lean();
-
-  const pathToModuleId = new Map<string, string>(
-    allModulePaths.map((m) => [m.path, (m._id as mongoose.Types.ObjectId).toString()]),
-  );
+  if (userId) {
+    try {
+      const { success, limit, remaining, reset } = await chatLimiter.limit(userId);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Rate limit exceeded. Maximum 60 chat requests per hour." },
+          {
+            status: 429,
+            headers: {
+              "X-RateLimit-Limit": String(limit),
+              "X-RateLimit-Remaining": String(remaining),
+              "X-RateLimit-Reset": String(reset),
+            },
+          },
+        );
+      }
+    } catch (rlErr: unknown) {
+      console.warn("[chat] Rate limiter unavailable, failing open:", rlErr);
+    }
+  }
 
   // ------------------------------------------------------------------
-  // 6. Build grounded system prompt
+  // 3. Database fetch & Grounding
   // ------------------------------------------------------------------
-  const systemPrompt = buildSystemPrompt(
-    repo.name as string,
-    repo.url as string,
-    groundingModules as Array<{
+  await connectToDatabase();
+
+  let targetRepoObjectId: mongoose.Types.ObjectId;
+  let repoName: string;
+  let repoUrl: string;
+  let groundingModules: Array<{
+    path: string;
+    summary: string;
+    complexityScore: number;
+    loc: number;
+  }> = [];
+  const pathToModuleId = new Map<string, string>();
+
+  if (isExplorer) {
+    const canonicalKey = repoId.toLowerCase();
+    const cachedRepo = await PublicRepository.findOne({ canonicalKey });
+
+    if (!cachedRepo) {
+      return NextResponse.json({ error: "Repository not found in cache." }, { status: 404 });
+    }
+    if (cachedRepo.isPrivate) {
+      return NextResponse.json({ error: "Private repositories are denied." }, { status: 403 });
+    }
+
+    targetRepoObjectId = cachedRepo._id as mongoose.Types.ObjectId;
+    repoName = cachedRepo.name;
+    repoUrl = cachedRepo.url;
+
+    // Retrieve grounding files from the cached graph
+    const nodes = cachedRepo.graphPayload?.nodes || [];
+    const fileNodes = nodes.filter((n) => n.kind === "file" && n.summary);
+
+    // Sort by complexity score to get key files
+    fileNodes.sort((a, b) => (b.complexityScore || 0) - (a.complexityScore || 0));
+    const topFileNodes = fileNodes.slice(0, 30);
+
+    groundingModules = topFileNodes.map((n) => ({
+      path: n.path,
+      summary: n.summary || "",
+      complexityScore: n.complexityScore || 0,
+      loc: n.loc || 0,
+    }));
+
+    nodes.forEach((n) => {
+      pathToModuleId.set(n.path, n.id);
+    });
+  } else {
+    // Workspace Mode
+    const dbOrg = await getOrCreateOrganization(orgId, userId!);
+    const repo = await Repository.findOne({
+      _id: new mongoose.Types.ObjectId(repoId),
+      orgId: dbOrg._id,
+    });
+
+    if (!repo) {
+      return NextResponse.json(
+        { error: "Repository not found or access denied." },
+        { status: 404 },
+      );
+    }
+
+    targetRepoObjectId = repo._id as mongoose.Types.ObjectId;
+    repoName = repo.name;
+    repoUrl = repo.url;
+
+    const modules = await Module.find({
+      repoId: repo._id,
+      summaryStatus: "done",
+      type: "file",
+      summary: { $ne: "" },
+    })
+      .sort({ complexityScore: -1 })
+      .limit(30)
+      .select("path summary complexityScore loc")
+      .lean();
+
+    groundingModules = modules as Array<{
       path: string;
       summary: string;
       complexityScore: number;
       loc: number;
-    }>,
-  );
+    }>;
+
+    const allModulePaths = await Module.find({ repoId: repo._id }).select("_id path").lean();
+    allModulePaths.forEach((m) => {
+      pathToModuleId.set(m.path, (m._id as mongoose.Types.ObjectId).toString());
+    });
+  }
 
   // ------------------------------------------------------------------
-  // 7. Stream response via OpenAI SDK
+  // 4. Build grounded system prompt
+  // ------------------------------------------------------------------
+  const systemPrompt = buildSystemPrompt(repoName, repoUrl, groundingModules);
+
+  // ------------------------------------------------------------------
+  // 5. Stream response via OpenAI SDK
   // ------------------------------------------------------------------
   const client = getOpenAIClient();
 
@@ -185,14 +226,10 @@ export async function POST(req: NextRequest): Promise<Response> {
 
         controller.close();
 
-        // Persist after stream completes (non-blocking from client perspective)
-        void persistChatSession(
-          repo._id as mongoose.Types.ObjectId,
-          userId,
-          messages,
-          fullText,
-          pathToModuleId,
-        );
+        // Only persist chat session if the user is authenticated
+        if (userId) {
+          void persistChatSession(targetRepoObjectId, userId, messages, fullText, pathToModuleId);
+        }
       } catch (err: unknown) {
         console.error("[chat] Stream error:", err);
         controller.error(err);

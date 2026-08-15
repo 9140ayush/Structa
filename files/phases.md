@@ -138,16 +138,16 @@ The cache is Explorer Mode's entire cost-control and scalability strategy. This 
 
 This phase makes Explorer Mode a complete, polished, first-class experience — visually and functionally consistent with Workspace's existing 3D graph and chat, just pointed at a different data source.
 
-- [ ] Build `explorer/[canonicalKey]/page.tsx`, reusing `DependencyGraphScene`, `Node`, `Edge`, and `ChatPanel` from Workspace Mode against cached Explorer data
-- [ ] Implement `GET /api/explorer/repo/[canonicalKey]` (serve cached graph + summaries)
-- [ ] Build `IndexingProgress.tsx` for the first-time (cache-miss) experience — validate → fetch → parse → graph → summarize, shown as real progress, not a blank spinner
-- [ ] Implement the Popular Repositories surface (`GET /api/explorer/popular`, most-explored across all users)
-- [ ] Implement Recently Explored (signed-in) and Search History surfaces (`GET /api/explorer/recent`)
-- [ ] Add a persistent Workspace/Explorer mode switcher to the main navigation shell
-- [ ] Implement `GET /api/explorer/analytics` (cache hit rate, top explored repos, search volume)
-- [ ] Confirm Explorer intentionally excludes annotations, snapshots, and org analytics (Workspace-exclusive by product design)
-- [ ] Full loading/error/empty-state pass across all Explorer pages and components
-- [ ] Tag release `v0.7.0`
+- [x] Build `explorer/[canonicalKey]/page.tsx`, reusing `DependencyGraphScene`, `Node`, `Edge`, and `ChatPanel` from Workspace Mode against cached Explorer data
+- [x] Implement `GET /api/explorer/repo/[canonicalKey]` (serve cached graph + summaries)
+- [x] Build `IndexingProgress.tsx` for the first-time (cache-miss) experience — validate → fetch → parse → graph → summarize, shown as real progress, not a blank spinner
+- [x] Implement the Popular Repositories surface (`GET /api/explorer/popular`, most-explored across all users)
+- [x] Implement Recently Explored (signed-in) and Search History surfaces (`GET /api/explorer/recent`)
+- [x] Add a persistent Workspace/Explorer mode switcher to the main navigation shell
+- [x] Implement `GET /api/explorer/analytics` (cache hit rate, top explored repos, search volume)
+- [x] Confirm Explorer intentionally excludes annotations, snapshots, and org analytics (Workspace-exclusive by product design)
+- [x] Full loading/error/empty-state pass across all Explorer pages and components
+- [x] Tag release `v0.7.0`
 
 ---
 
