@@ -351,7 +351,10 @@ export async function POST(
 
         let diffFromPrevious = null;
         if (prevSnap && prevSnap.graphJson) {
-          diffFromPrevious = calculateSnapshotDiff(prevSnap.graphJson as GraphLike, currentGraphPayload);
+          diffFromPrevious = calculateSnapshotDiff(
+            prevSnap.graphJson as GraphLike,
+            currentGraphPayload,
+          );
         }
 
         await Snapshot.create({

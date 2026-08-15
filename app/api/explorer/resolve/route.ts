@@ -269,21 +269,52 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Initialize document cache with indexStatus: 'indexing'
-    const newCache = await PublicRepository.create({
-      canonicalKey,
-      owner,
-      repo,
-      name: repoDetails.name,
-      url: repoDetails.url,
-      description: repoDetails.description ?? "",
-      stars: repoDetails.stars,
-      language: repoDetails.language ?? "",
-      githubRepoId: repoDetails.id,
-      isPrivate: repoDetails.isPrivate,
-      defaultBranch: headInfo?.defaultBranch || repoDetails.defaultBranch,
-      indexStatus: "indexing",
-      exploreCount: 1,
-    });
+    let newCache;
+    try {
+      newCache = await PublicRepository.create({
+        canonicalKey,
+        owner,
+        repo,
+        name: repoDetails.name,
+        url: repoDetails.url,
+        description: repoDetails.description ?? "",
+        stars: repoDetails.stars,
+        language: repoDetails.language ?? "",
+        githubRepoId: repoDetails.id,
+        isPrivate: repoDetails.isPrivate,
+        defaultBranch: headInfo?.defaultBranch || repoDetails.defaultBranch,
+        indexStatus: "indexing",
+        exploreCount: 1,
+      });
+    } catch (createErr: unknown) {
+      if ((createErr as { code?: number })?.code === 11000) {
+        const racingCache = await PublicRepository.findOne({ canonicalKey });
+        if (racingCache) {
+          return NextResponse.json({
+            success: true,
+            data: {
+              cached: false,
+              canonicalKey,
+              indexStatus: racingCache.indexStatus,
+              repo: {
+                id: racingCache.githubRepoId,
+                name: racingCache.name,
+                fullName: `${racingCache.owner}/${racingCache.repo}`,
+                owner: racingCache.owner,
+                url: racingCache.url,
+                stars: racingCache.stars,
+                language: racingCache.language,
+                description: racingCache.description,
+                isPrivate: racingCache.isPrivate,
+                defaultBranch: racingCache.defaultBranch,
+                updatedAt: racingCache.createdAt.toISOString(),
+              },
+            },
+          });
+        }
+      }
+      throw createErr;
+    }
 
     if (userId) {
       await SearchHistory.create({ userId, canonicalKey });

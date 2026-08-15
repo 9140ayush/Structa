@@ -80,7 +80,7 @@ export async function GET(
     // Compute diff dynamically to ensure correctness
     const diff = calculateSnapshotDiff(
       fromSnapshot.graphJson as GraphLike,
-      toSnapshot.graphJson as GraphLike
+      toSnapshot.graphJson as GraphLike,
     );
 
     return NextResponse.json({
