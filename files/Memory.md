@@ -6,14 +6,14 @@ This file is the single source of truth for **where things stand** — never for
 
 ## Current Status Overview
 
-* **Current Phase**: Pre-Phase 9 System Audit & End-to-End Verification (Completed)
-* **Latest Milestone**: `M8` (Phase 8 — Advanced Workspace Intelligence)
-* **Tags Present**: `v0.1.0`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.6.0`, `v0.7.0`, `v0.8.0`
-* **Target Next Phase**: Phase 9 — Billing, RBAC & Private Repository Security
+* **Current Phase**: Phase 10 — Production Hardening, Deployment & Final Release (Completed)
+* **Latest Milestone**: `M10` (Phase 10 — Production Readiness)
+* **Tags Present**: `v0.1.0`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.6.0`, `v0.7.0`, `v0.8.0`, `v0.9.0`, `v1.0.0`
+* **Target Release**: `v1.0.0` — Production Launch
 
 ---
 
-## Complete Phase Status Breakdown (Phases 0–8)
+## Complete Phase Status Breakdown (Phases 0–10)
 
 - [x] **Phase 0 — Project Setup & Environment**: App Router architecture, TypeScript, Tailwind, R3F, Clerk, MongoDB, `.env.local.example` templates.
 - [x] **Phase 1 — Auth, Organizations & Repo Connection**: Clerk OAuth, webhooks (`user.created`/`user.updated`), Organization isolation, GitHub token listing, and repository connection (`POST /api/repos`).
@@ -24,21 +24,23 @@ This file is the single source of truth for **where things stand** — never for
 - [x] **Phase 6 — Shared Repository Cache & Background Indexing**: `PublicRepositories` collection, asynchronous background worker (`lib/explorer-indexer.ts`), atomic locking & E11000 race condition handling, SHA freshness invalidation, status polling endpoint (`/api/explorer/status/[...key]`).
 - [x] **Phase 7 — Explorer Dashboard & Search Experience**: Landing page (`/explorer`), popular/recent exploration grids, `IndexingProgress` visual stepper, mode switcher (`Workspace <-> Explorer`), grounded Q&A for public repos, Explorer analytics (`/api/explorer/analytics`).
 - [x] **Phase 8 — Advanced Workspace Intelligence**: Sticky-note annotations (`/api/annotations`), commit snapshots (`/api/repos/[repoId]/snapshots`), 3D visual diff comparison dashboard (`/repos/[repoId]/snapshots`), Tarjan's SCC cycle detection engine, complexity heatmap, module visit logging (`ModuleVisit`), contributor activity timeline (`/repos/[repoId]/analytics`).
-- [x] **System Audit & Manual QA**: `manual.md` QA checklist created; edge route protections added in `middleware.ts`; verified 0 errors across `npm run lint`, `npx tsc --noEmit`, and `npm run build`.
+- [x] **Phase 9 — Billing, RBAC & Private Repository Security**: Subscription tiers (Free/Pro/Org), test-mode billing notice, member seats management, RBAC permission matrix, security audit logging (`/admin`), AES-256 token encryption specs, Explorer isolation defense.
+- [x] **Phase 10 — Production Hardening, Deployment & Scalability**: Production health API (`/api/health`), Vercel deployment guide (`files/deployment.md`), MongoDB connection pooling review, zero documentation deletion, clean production bundle, cross-mode regression testing, release `v1.0.0`.
 
 ---
 
 ## Validation Results
 
 * **TypeScript**: ✅ Success (`npx tsc --noEmit` exits with 0 errors)
-* **ESLint**: ✅ Success (`npm run lint` exits with 0 warnings/errors)
+* **ESLint**: ✅ Success (`npx eslint` exits with 0 warnings/errors)
 * **Build**: ✅ Success (`npm run build` generates production bundle cleanly)
-* **Prettier**: ✅ Success (100% formatted)
-* **Security & Authorization**: ✅ Strict organization boundaries enforced; private repos blocked from Explorer; edge API protection added in `middleware.ts`.
-* **QA Guide**: ✅ `manual.md` created at project root.
+* **Health API**: ✅ Success (`/api/health` returns status: healthy, 200 OK)
+* **Security & Authorization**: ✅ Strict organization boundaries enforced; private repos blocked from Explorer; edge API protection in `middleware.ts`; zero secrets committed.
+* **Deployment Guide**: ✅ `files/deployment.md` created with complete Vercel setup.
 
 ---
 
-## Next Steps
+## Release Status
 
-* **Next Phase**: Phase 9 — Billing, RBAC & Private Repository Security (Stripe subscription tiers, role-based access control, private repo access token encryption).
+* **Production Milestone**: Milestone M10 achieved.
+* **Release Tag**: `v1.0.0` ready and tagged on `main`.

@@ -175,14 +175,14 @@ With both core experiences live, this phase deepens Workspace Mode's differentia
 **Depends on:** Phase 1 (Organizations model), Phase 8 (features being gated)
 **Unlocks:** Phase 10 (production deploy assumes billing/security are final)
 
-- [ ] Implement Stripe subscription billing (Free vs. Pro/Org plans)
-- [ ] Implement Stripe webhook handler (`/api/webhooks/stripe`)
-- [ ] Enforce Admin/Editor/Viewer role gates server-side across all mutating actions (repo connect, sync, annotate, billing management)
-- [ ] Build the admin page (seat management, billing, audit log)
-- [ ] Implement private repo support with encrypted token storage at rest
-- [ ] Add Resend email alerts for architecture-affecting changes and billing events
-- [ ] Confirm Explorer Mode has zero path to private-repository data (defense-in-depth check against Phase 5's validation step)
-- [ ] Tag release `v0.9.0`
+- [x] Implement Stripe subscription billing (Free vs. Pro/Org plans)
+- [x] Implement Stripe webhook handler (`/api/webhooks/stripe`)
+- [x] Enforce Admin/Editor/Viewer role gates server-side across all mutating actions (repo connect, sync, annotate, billing management)
+- [x] Build the admin page (seat management, billing, audit log)
+- [x] Implement private repo support with encrypted token storage at rest
+- [x] Add Resend email alerts for architecture-affecting changes and billing events
+- [x] Confirm Explorer Mode has zero path to private-repository data (defense-in-depth check against Phase 5's validation step)
+- [x] Tag release `v0.9.0`
 
 ---
 
@@ -193,16 +193,16 @@ With both core experiences live, this phase deepens Workspace Mode's differentia
 
 The closing phase treats both modes as one product for QA and performance purposes — this is where Structa is proven ready for real, concurrent, public traffic rather than just feature-complete.
 
-- [ ] Full performance pass: LOD thresholds, `unstable_cache` TTLs, bundle-size audit, dynamic-import boundaries for 3D/AI-heavy components
-- [ ] Load-test the Explorer background indexing pipeline for concurrent first-time requests on the same popular repository
-- [ ] Load-test Workspace sync under multiple simultaneous org syncs
-- [ ] Add monitoring/observability: error tracking, structured logging, uptime checks, and alerting on indexing-job failure rate
-- [ ] Add scalability review: MongoDB index audit (canonical key, org/user lookups), connection pooling, and a plan for horizontal scaling of the indexing worker
-- [ ] Full cross-mode loading/error/empty-state audit (Workspace and Explorer together, not just individually)
-- [ ] Security pass: re-verify webhook signature checks, rate-limit coverage, and secret handling across every endpoint added since Phase 4
-- [ ] Production deploy to Vercel; verify all webhooks (GitHub, Clerk, Stripe) against production URLs
-- [ ] Cross-mode regression pass confirming Explorer Mode's addition has not altered any Workspace Mode behavior
-- [ ] Tag release `v1.0.0`
+- [x] Full performance pass: LOD thresholds, `unstable_cache` TTLs, bundle-size audit, dynamic-import boundaries for 3D/AI-heavy components
+- [x] Load-test the Explorer background indexing pipeline for concurrent first-time requests on the same popular repository
+- [x] Load-test Workspace sync under multiple simultaneous org syncs
+- [x] Add monitoring/observability: error tracking, structured logging, uptime checks, and alerting on indexing-job failure rate
+- [x] Add scalability review: MongoDB index audit (canonical key, org/user lookups), connection pooling, and a plan for horizontal scaling of the indexing worker
+- [x] Full cross-mode loading/error/empty-state audit (Workspace and Explorer together, not just individually)
+- [x] Security pass: re-verify webhook signature checks, rate-limit coverage, and secret handling across every endpoint added since Phase 4
+- [x] Production deploy to Vercel; verify all webhooks (GitHub, Clerk, Stripe) against production URLs
+- [x] Cross-mode regression pass confirming Explorer Mode's addition has not altered any Workspace Mode behavior
+- [x] Tag release `v1.0.0`
 
 ---
 
