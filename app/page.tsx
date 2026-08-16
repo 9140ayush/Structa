@@ -14,7 +14,7 @@ export default function Home() {
     { name: "Establish Cached Mongoose Connection Singleton", status: "completed" },
     { name: "Create .env.local.example template", status: "completed" },
     { name: "Initialize Git repository (main/dev branches)", status: "completed" },
-    { name: "Deploy 'Hello CodeAtlas' shell to Vercel", status: "completed" },
+    { name: "Deploy 'Hello Structa' shell to Vercel", status: "completed" },
   ];
 
   return (
@@ -72,7 +72,7 @@ export default function Home() {
           </div>
 
           <h1 className="font-heading text-4xl sm:text-6xl font-bold tracking-tight text-foreground leading-tight">
-            Hello <span className="text-primary drop-shadow-glow">CodeAtlas</span>
+            Hello <span className="text-primary drop-shadow-glow">Structa</span>
           </h1>
 
           <p className="max-w-xl text-base sm:text-lg text-muted-foreground">

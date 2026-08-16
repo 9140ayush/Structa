@@ -1,7 +1,8 @@
 import React from "react";
-import { UserButton, OrganizationSwitcher } from "@clerk/nextjs";
+import { OrganizationSwitcher } from "@clerk/nextjs";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
+import { NavbarUserMenu } from "@/components/shared/NavbarUserMenu";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -21,7 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-background font-mono font-bold text-lg shadow-glow-primary transition-all duration-300 group-hover:scale-105">
                 S
               </div>
-              <span className="font-heading font-semibold text-lg tracking-tight bg-gradient-to-r from-foreground to-foreground/80 group-hover:to-primary transition-colors">
+              <span className="font-heading font-semibold text-lg tracking-tight text-foreground group-hover:text-primary transition-colors">
                 Structa
               </span>
               <span className="font-mono text-[10px] text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
@@ -39,6 +40,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     rootBox: "flex items-center text-sm font-medium",
                     organizationSwitcherTrigger:
                       "text-foreground hover:bg-secondary/80 hover:text-foreground font-sans px-3 py-1.5 rounded-md border border-border bg-card/50 transition-colors",
+                    organizationSwitcherTriggerText: "text-foreground font-medium",
+                    organizationPreviewMainIdentifier: "text-foreground font-medium",
+                    organizationPreviewTextContainer: "text-foreground",
                     organizationSwitcherTriggerIcon: "text-muted-foreground",
                   },
                 }}
@@ -90,20 +94,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     rootBox: "flex items-center text-xs",
                     organizationSwitcherTrigger:
                       "text-foreground hover:bg-secondary px-2.5 py-1.5 rounded-md border border-border bg-card/50",
+                    organizationSwitcherTriggerText: "text-foreground font-medium",
+                    organizationPreviewMainIdentifier: "text-foreground font-medium",
+                    organizationPreviewTextContainer: "text-foreground",
                   },
                 }}
               />
             </div>
 
-            {/* User Button */}
+            {/* User Button & Name */}
             <div className="flex items-center gap-2.5 border-l border-border pl-4">
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8 rounded-full border border-border shadow-sm",
-                  },
-                }}
-              />
+              <NavbarUserMenu />
             </div>
           </div>
         </div>

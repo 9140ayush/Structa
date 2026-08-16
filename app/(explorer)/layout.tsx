@@ -6,8 +6,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
 import { ShieldCheck } from "lucide-react";
+import { NavbarUserMenu } from "@/components/shared/NavbarUserMenu";
 
 export default function ExplorerLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,7 +27,7 @@ export default function ExplorerLayout({ children }: { children: React.ReactNode
               <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-background font-mono font-bold text-lg shadow-glow-accent transition-all duration-300 group-hover:scale-105">
                 S
               </div>
-              <span className="font-heading font-semibold text-lg tracking-tight bg-gradient-to-r from-foreground to-foreground/80 group-hover:to-accent transition-colors">
+              <span className="font-heading font-semibold text-lg tracking-tight text-foreground group-hover:text-accent transition-colors">
                 Structa
               </span>
               <span className="font-mono text-[10px] text-accent/80 bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">
@@ -55,13 +55,7 @@ export default function ExplorerLayout({ children }: { children: React.ReactNode
           </div>
 
           <div className="flex items-center gap-4">
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-8 h-8 rounded-full border border-border shadow-sm",
-                },
-              }}
-            />
+            <NavbarUserMenu />
           </div>
         </div>
       </header>

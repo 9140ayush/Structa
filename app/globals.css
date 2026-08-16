@@ -134,3 +134,16 @@
     @apply font-sans;
   }
 }
+
+/* Clerk Navbar Theme Overrides for Dark Theme Consistency */
+.cl-organizationSwitcherTrigger,
+.cl-organizationSwitcherTriggerText,
+.cl-organizationPreviewTextContainer,
+.cl-organizationPreviewMainIdentifier,
+.cl-userButtonOuterIdentifier {
+  color: var(--foreground) !important;
+}
+
+.cl-organizationSwitcherTriggerIcon {
+  color: var(--muted-foreground) !important;
+}
