@@ -60,9 +60,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 Explorer
               </Link>
             </div>
+
+            {/* Admin / Settings Navigation Entry */}
+            <Link
+              href="/admin"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-card/50 hover:bg-secondary text-xs font-mono font-medium text-muted-foreground hover:text-foreground transition-colors"
+              title="Organization Settings & Administration"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-accent" />
+              <span>Admin</span>
+            </Link>
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Mobile Admin Link */}
+            <Link
+              href="/admin"
+              className="sm:hidden p-1.5 rounded-md border border-border bg-card/50 text-muted-foreground hover:text-foreground"
+              title="Admin Settings"
+            >
+              <ShieldCheck className="w-4 h-4 text-accent" />
+            </Link>
+
             {/* Mobile Org Switcher */}
             <div className="sm:hidden">
               <OrganizationSwitcher
