@@ -326,7 +326,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 15.5 Complexity Heatmap
 - [ ] Enable "Complexity Heatmap" toggle
-  - **Expected**: Nodes recolor dynamically based on LOC and complexity score.
+  - **Expected**: Nodes recolor dynamically based LOC and complexity score.
 
 ### 15.6 Contributor Activity
 - [ ] Navigate to `/repos/[repoId]/analytics`
