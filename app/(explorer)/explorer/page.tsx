@@ -188,7 +188,7 @@ export default function ExplorerLandingPage() {
   };
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col justify-start relative">
+    <div className="flex-1 w-full flex flex-col justify-start relative">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_85%_at_50%_-10%,rgba(124,156,255,0.06),rgba(255,255,255,0))] pointer-events-none" />
 
       {/* Hero section */}

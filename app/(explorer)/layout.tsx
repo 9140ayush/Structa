@@ -1,12 +1,13 @@
 /**
  * app/(explorer)/layout.tsx — Layout for the explorer route group.
  *
- * Provides a clean page context with Mode Switcher and user authentication buttons.
+ * Structure mirrors Dashboard layout: top header, max-w-7xl px-4 sm:px-6 lg:px-8 py-8 main, footer.
  */
 
 import React from "react";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
+import { ShieldCheck } from "lucide-react";
 
 export default function ExplorerLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -65,8 +66,27 @@ export default function ExplorerLayout({ children }: { children: React.ReactNode
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <div className="flex-1 w-full flex flex-col relative z-10">{children}</div>
+      {/* Main Content Area — matches DashboardLayout container spacing */}
+      <main className="relative flex-1 z-10 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
+        {children}
+      </main>
+
+      {/* Footer — mirrors Dashboard layout footer */}
+      <footer className="border-t border-border bg-card/30 py-6 text-center text-xs font-mono text-muted-foreground z-10 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span>&copy; {new Date().getFullYear()} Structa. All rights reserved.</span>
+          <div className="flex items-center gap-4 text-[11px]">
+            <Link href="/pricing" className="hover:text-foreground transition-colors">
+              Pricing
+            </Link>
+            <span className="text-border">|</span>
+            <span className="flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-accent" />
+              Public Explorer
+            </span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
