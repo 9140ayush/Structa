@@ -135,15 +135,34 @@
   }
 }
 
-/* Clerk Navbar Theme Overrides for Dark Theme Consistency */
+/* Clerk Navbar Header Trigger: Bright text on dark navbar */
 .cl-organizationSwitcherTrigger,
-.cl-organizationSwitcherTriggerText,
-.cl-organizationPreviewTextContainer,
-.cl-organizationPreviewMainIdentifier,
+.cl-organizationSwitcherTrigger .cl-organizationSwitcherTriggerText,
+.cl-organizationSwitcherTrigger .cl-organizationPreviewTextContainer,
+.cl-organizationSwitcherTrigger .cl-organizationPreviewMainIdentifier,
 .cl-userButtonOuterIdentifier {
   color: var(--foreground) !important;
 }
 
 .cl-organizationSwitcherTriggerIcon {
   color: var(--muted-foreground) !important;
-}
+}
+
+/* Clerk Popover Modal Cards: Crisp dark text on white card background */
+.cl-organizationSwitcherPopoverCard,
+.cl-userButtonPopoverCard {
+  color: #12151B !important;
+}
+
+.cl-organizationSwitcherPopoverCard .cl-organizationPreviewMainIdentifier,
+.cl-userButtonPopoverCard .cl-userPreviewMainIdentifier,
+.cl-organizationSwitcherPopoverCard .cl-organizationSwitcherPopoverActionButtonText,
+.cl-userButtonPopoverCard .cl-userButtonPopoverActionButtonText {
+  color: #12151B !important;
+}
+
+.cl-organizationSwitcherPopoverCard .cl-organizationPreviewSecondaryIdentifier,
+.cl-userButtonPopoverCard .cl-userPreviewSecondaryIdentifier {
+  color: #5C6270 !important;
+}
+
