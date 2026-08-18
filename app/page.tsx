@@ -1,153 +1,148 @@
-"use client";
+/**
+ * app/page.tsx — Structa landing page (redesigned).
+ *
+ * Server Component — static shell for fast first paint.
+ * Heavy 3D and interactive sections use Client Component wrappers (DynamicSections)
+ * because Next.js 16.2.11 breaking change: ssr:false is NOT allowed in Server Components.
+ *
+ * Architecture.md §3: Marketing routes are SSG/ISR.
+ * Rules.md §2: No secrets in client bundle; 3D canvas always ssr:false.
+ */
 
-import { motion } from "framer-motion";
-import { CheckCircle2, ShieldCheck, Database, Layers, GitBranch, Cloud } from "lucide-react";
-import { Show, UserButton } from "@clerk/nextjs";
-import Link from "next/link";
+import { Suspense } from "react";
+import { Navbar } from "@/components/landing/Navbar";
+import { Hero } from "@/components/landing/Hero";
+import { ProblemSection } from "@/components/landing/ProblemSection";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { RepositorySearch } from "@/components/landing/RepositorySearch";
+import { FeaturePillars } from "@/components/landing/FeaturePillars";
+import { UseCases } from "@/components/landing/UseCases";
+import { SecuritySection } from "@/components/landing/SecuritySection";
+import { Footer } from "@/components/landing/Footer";
+import { FinalCTA } from "@/components/landing/FinalCTA";
+// Client Component barrel: all ssr:false dynamic imports must live in a Client Component
+// (Next.js 16.2.11 breaking change — see AGENTS.md)
+import {
+  ExplorerShowcaseSection,
+  AIUnderstandingSection,
+  DependencyIntelligenceSection,
+  TechnicalPipelineSection,
+  CodeToUnderstandingSection,
+} from "@/components/landing/DynamicSections";
 
-export default function Home() {
-  const tasks = [
-    { name: "Scaffold Next.js (App Router) + TS", status: "completed" },
-    { name: "Configure Tailwind CSS & shadcn/ui", status: "completed" },
-    { name: "Install Lucide React, Framer Motion & R3F/drei", status: "completed" },
-    { name: "Configure ESLint & Prettier configs", status: "completed" },
-    { name: "Establish Cached Mongoose Connection Singleton", status: "completed" },
-    { name: "Create .env.local.example template", status: "completed" },
-    { name: "Initialize Git repository (main/dev branches)", status: "completed" },
-    { name: "Deploy 'Hello Structa' shell to Vercel", status: "completed" },
-  ];
+// ---------------------------------------------------------------------------
+// Loading skeleton for Suspense boundaries
+// ---------------------------------------------------------------------------
 
+function SectionSkeleton({ height }: { height: number }) {
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-background text-foreground overflow-hidden font-sans">
-      {/* Decorative gradient glowing spots */}
-      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-primary/10 blur-[120px]" />
-      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-accent/10 blur-[120px]" />
+    <div
+      className="w-full animate-pulse rounded-[16px] bg-surface/30"
+      style={{ height, margin: "0 auto" }}
+      aria-hidden="true"
+    />
+  );
+}
 
-      {/* Decorative starry background */}
-      <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]" />
+// ---------------------------------------------------------------------------
+// Divider / visual separator
+// ---------------------------------------------------------------------------
 
-      <header className="absolute top-0 left-0 right-0 max-w-7xl mx-auto px-6 h-20 flex items-center justify-between z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-background font-mono font-bold text-lg shadow-glow-primary">
-            S
-          </div>
-          <span className="font-heading font-semibold text-lg tracking-tight">Structa</span>
-        </div>
-        <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground">
-          <Show
-            when="signed-in"
-            fallback={
-              <Link
-                href="/sign-in"
-                className="px-3.5 py-1.5 rounded bg-secondary hover:bg-secondary/80 text-foreground font-sans font-medium border border-border transition-colors text-xs"
-              >
-                Sign In
-              </Link>
-            }
-          >
-            <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard"
-                className="px-3.5 py-1.5 rounded bg-primary hover:bg-primary-hover text-background font-sans font-medium transition-colors text-xs"
-              >
-                Go to Dashboard
-              </Link>
-              <UserButton />
-            </div>
-          </Show>
-        </div>
-      </header>
+function SectionDivider() {
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="h-px bg-border/50" />
+    </div>
+  );
+}
 
-      <main className="relative flex flex-col items-center max-w-3xl px-6 pt-24 pb-12 text-center z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex flex-col items-center gap-6"
-        >
-          {/* Logo badge */}
-          <div className="px-3 py-1 rounded-full border border-border bg-card/50 backdrop-blur-md text-xs font-mono text-primary flex items-center gap-2">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            Milestone M0 Successfully Initialized
-          </div>
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
-          <h1 className="font-heading text-4xl sm:text-6xl font-bold tracking-tight text-foreground leading-tight">
-            Hello <span className="text-primary drop-shadow-glow">Structa</span>
-          </h1>
+export default function LandingPage() {
+  return (
+    <>
+      {/* Sticky Navbar — Client Component for scroll state + Clerk Show */}
+      <Navbar />
 
-          <p className="max-w-xl text-base sm:text-lg text-muted-foreground">
-            The foundational shell for{" "}
-            <span className="font-semibold text-foreground">Structa</span> is now live. All
-            configurations, packages, and database layers are successfully set up and verified.
-          </p>
-        </motion.div>
+      <main id="main-content">
+        {/* §5.2 Hero — static shell + Client Component 3D graph shell */}
+        <Hero />
 
-        {/* Status Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-          className="w-full mt-10 p-6 sm:p-8 rounded-lg border border-border bg-card/40 backdrop-blur-lg shadow-sm hover:shadow-md transition-all duration-300"
-        >
-          <div className="flex flex-col gap-6 text-left">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <span className="font-heading font-medium text-lg text-foreground">
-                Phase 0 Checklist
-              </span>
-              <span className="font-mono text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
-                8 / 8 Done
-              </span>
-            </div>
+        <SectionDivider />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {tasks.map((task, index) => (
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 * index }}
-                  key={index}
-                  className="flex items-start gap-3"
-                >
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <span className="text-sm font-medium text-muted-foreground">{task.name}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
+        {/* §5.3 Problem → Solution */}
+        <ProblemSection />
 
-        {/* Technology Highlights */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 w-full"
-        >
-          <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-6">
-            Installed System Core
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {[
-              { icon: Layers, label: "Next.js App Router" },
-              { icon: Database, label: "MongoDB & Mongoose" },
-              { icon: GitBranch, label: "Git dev/main Split" },
-              { icon: Cloud, label: "Vercel Build Ready" },
-            ].map((tech, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-md border border-border bg-card/50 font-mono text-xs text-foreground hover:border-accent/50 transition-all duration-200"
-              >
-                <tech.icon className="w-4 h-4 text-accent" />
-                <span>{tech.label}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+        <SectionDivider />
+
+        {/* Signature exploded visual — Client Component (ssr:false) */}
+        <Suspense fallback={<SectionSkeleton height={500} />}>
+          <CodeToUnderstandingSection />
+        </Suspense>
+
+        <SectionDivider />
+
+        {/* §5.5 Live repository search — wired to real explorer resolve API */}
+        <RepositorySearch />
+
+        <SectionDivider />
+
+        {/* §5.6 How It Works */}
+        <HowItWorks />
+
+        <SectionDivider />
+
+        {/* §5.7 Explorer showcase — product UI recreation */}
+        <Suspense fallback={<SectionSkeleton height={520} />}>
+          <ExplorerShowcaseSection />
+        </Suspense>
+
+        <SectionDivider />
+
+        {/* §5.8 AI Understanding */}
+        <Suspense fallback={<SectionSkeleton height={480} />}>
+          <AIUnderstandingSection />
+        </Suspense>
+
+        <SectionDivider />
+
+        {/* §5.9 Dependency Intelligence */}
+        <Suspense fallback={<SectionSkeleton height={400} />}>
+          <DependencyIntelligenceSection />
+        </Suspense>
+
+        <SectionDivider />
+
+        {/* §5.10 Feature Pillars */}
+        <FeaturePillars />
+
+        <SectionDivider />
+
+        {/* §5.11 Use Cases */}
+        <UseCases />
+
+        <SectionDivider />
+
+        {/* §5.12 Technical Pipeline */}
+        <Suspense fallback={<SectionSkeleton height={320} />}>
+          <TechnicalPipelineSection />
+        </Suspense>
+
+        <SectionDivider />
+
+        {/* §5.13 Security */}
+        <SecuritySection />
+
+        <SectionDivider />
+
+        {/* §5.14 Final CTA */}
+        <FinalCTA />
       </main>
 
-      <footer className="mt-auto py-8 text-center text-xs font-mono text-muted-foreground z-10">
-        &copy; {new Date().getFullYear()} Structa. All setup specifications matched.
-      </footer>
-    </div>
+      {/* §5.15 Footer */}
+      <Footer />
+    </>
   );
 }

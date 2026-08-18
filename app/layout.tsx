@@ -19,9 +19,22 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Structa — 3D Codebase Explorer",
+  title: "Structa — Understand Any Codebase",
   description:
-    "Structa turns any GitHub repository into a living, explorable 3D architecture map with AI-generated documentation and an 'ask the codebase' chat.",
+    "Structa turns GitHub repositories into interactive 3D architecture maps with AI-generated insights and a grounded Ask-the-Codebase chat. Explore any public repo instantly — no signup required.",
+  openGraph: {
+    title: "Structa — Understand Any Codebase",
+    description:
+      "Structa turns GitHub repositories into interactive 3D architecture maps with AI-generated insights and a grounded Ask-the-Codebase chat. Explore any public repo instantly — no signup required.",
+    type: "website",
+    siteName: "Structa",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Structa — Understand Any Codebase",
+    description:
+      "Turn any GitHub repository into a navigable 3D architecture map with AI explanations you can question directly.",
+  },
 };
 
 export default function RootLayout({
