@@ -13,16 +13,7 @@
 import React, { useRef, useState } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { HealthScoreRing } from "@/components/shared/HealthScoreRing";
-import {
-  FileCode,
-  Folder,
-  ChevronRight,
-  Bot,
-  Globe,
-  GitBranch,
-  Star,
-  Loader2,
-} from "lucide-react";
+import { FileCode, Folder, ChevronRight, Bot, Globe, GitBranch, Star, Loader2 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Mock tree data
@@ -53,9 +44,14 @@ const MOCK_GRAPH_NODES = [
 ];
 
 const MOCK_EDGES_SVG = [
-  { from: "g1", to: "g2" }, { from: "g2", to: "g3" }, { from: "g1", to: "g4" },
-  { from: "g3", to: "g5" }, { from: "g5", to: "g6" }, { from: "g4", to: "g7" },
-  { from: "g5", to: "g8" }, { from: "g2", to: "g5" },
+  { from: "g1", to: "g2" },
+  { from: "g2", to: "g3" },
+  { from: "g1", to: "g4" },
+  { from: "g3", to: "g5" },
+  { from: "g5", to: "g6" },
+  { from: "g4", to: "g7" },
+  { from: "g5", to: "g8" },
+  { from: "g2", to: "g5" },
 ];
 
 function complexityColor(t: number): string {
@@ -83,11 +79,7 @@ export function ExplorerShowcase() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
   return (
-    <section
-      ref={ref}
-      className="relative py-24 px-4 sm:px-6"
-      aria-labelledby="showcase-heading"
-    >
+    <section ref={ref} className="relative py-24 px-4 sm:px-6" aria-labelledby="showcase-heading">
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <motion.div
@@ -146,7 +138,9 @@ export function ExplorerShowcase() {
             </div>
             <div className="flex items-center gap-3">
               <HealthScoreRing score={87} size={44} strokeWidth={4} />
-              <span className="font-mono text-[9px] text-muted-foreground hidden sm:block">Health: 87/100</span>
+              <span className="font-mono text-[9px] text-muted-foreground hidden sm:block">
+                Health: 87/100
+              </span>
             </div>
           </div>
 
@@ -155,7 +149,9 @@ export function ExplorerShowcase() {
             {/* Left: File tree */}
             <div className="w-44 sm:w-52 border-r border-border bg-surface-elevated/40 overflow-hidden shrink-0">
               <div className="px-3 py-2 border-b border-border">
-                <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">Repository</p>
+                <p className="font-mono text-[9px] text-muted-foreground uppercase tracking-wider">
+                  Repository
+                </p>
               </div>
               <div className="py-1">
                 {MOCK_TREE.map((item, i) => (
@@ -179,9 +175,13 @@ export function ExplorerShowcase() {
                         <Folder className="w-3 h-3 text-accent shrink-0" />
                       </>
                     ) : (
-                      <FileCode className={`w-3 h-3 shrink-0 ${item.active ? "text-primary" : item.highlighted ? "text-accent" : "text-muted-foreground"}`} />
+                      <FileCode
+                        className={`w-3 h-3 shrink-0 ${item.active ? "text-primary" : item.highlighted ? "text-accent" : "text-muted-foreground"}`}
+                      />
                     )}
-                    <span className={`font-mono text-[10px] truncate ${item.active ? "text-primary font-semibold" : item.highlighted ? "text-accent" : "text-muted-foreground"}`}>
+                    <span
+                      className={`font-mono text-[10px] truncate ${item.active ? "text-primary font-semibold" : item.highlighted ? "text-accent" : "text-muted-foreground"}`}
+                    >
                       {item.name}
                     </span>
                   </motion.div>
@@ -206,7 +206,10 @@ export function ExplorerShowcase() {
                   return (
                     <motion.line
                       key={i}
-                      x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+                      x1={from.x}
+                      y1={from.y}
+                      x2={to.x}
+                      y2={to.y}
                       stroke={isActive ? "#3DDC97" : "#7C9CFF"}
                       strokeWidth={isActive ? 1.5 : 0.6}
                       strokeOpacity={isActive ? 0.9 : 0.3}
@@ -225,18 +228,40 @@ export function ExplorerShowcase() {
                       key={node.id}
                       initial={{ scale: 0, opacity: 0 }}
                       animate={inView ? { scale: 1, opacity: 1 } : {}}
-                      transition={{ duration: 0.4, delay: 0.5 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{
+                        duration: 0.4,
+                        delay: 0.5 + i * 0.07,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
                       style={{ transformOrigin: `${node.x}px ${node.y}px`, cursor: "pointer" }}
                       onClick={() => setSelectedNode(node.id === selectedNode ? null : node.id)}
                     >
                       {isSelected && (
-                        <circle cx={node.x} cy={node.y} r={node.r * 1.6} fill="none" stroke="#3DDC97" strokeWidth={1} strokeOpacity={0.6} />
+                        <circle
+                          cx={node.x}
+                          cy={node.y}
+                          r={node.r * 1.6}
+                          fill="none"
+                          stroke="#3DDC97"
+                          strokeWidth={1}
+                          strokeOpacity={0.6}
+                        />
                       )}
                       <circle cx={node.x} cy={node.y} r={node.r} fill={col} fillOpacity={0.85} />
                       {isSelected && (
                         <circle cx={node.x} cy={node.y} r={node.r} fill={col} fillOpacity={0.3}>
-                          <animate attributeName="r" values={`${node.r};${node.r * 1.4};${node.r}`} dur="1.5s" repeatCount="indefinite" />
-                          <animate attributeName="opacity" values="0.3;0;0.3" dur="1.5s" repeatCount="indefinite" />
+                          <animate
+                            attributeName="r"
+                            values={`${node.r};${node.r * 1.4};${node.r}`}
+                            dur="1.5s"
+                            repeatCount="indefinite"
+                          />
+                          <animate
+                            attributeName="opacity"
+                            values="0.3;0;0.3"
+                            dur="1.5s"
+                            repeatCount="indefinite"
+                          />
                         </circle>
                       )}
                     </motion.g>
@@ -268,7 +293,9 @@ export function ExplorerShowcase() {
                 <div className="p-1 rounded-md bg-accent/10 text-accent">
                   <Bot className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-heading font-semibold text-xs text-foreground">Ask the Codebase</span>
+                <span className="font-heading font-semibold text-xs text-foreground">
+                  Ask the Codebase
+                </span>
               </div>
               <div className="flex-1 p-3 space-y-3 overflow-hidden">
                 {/* Example exchange */}
@@ -297,7 +324,10 @@ export function ExplorerShowcase() {
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         {["parser.ts", "Node.tsx"].map((f) => (
-                          <span key={f} className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-accent/10 border border-accent/25 text-accent font-mono text-[8px]">
+                          <span
+                            key={f}
+                            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-accent/10 border border-accent/25 text-accent font-mono text-[8px]"
+                          >
                             <FileCode className="w-2 h-2 shrink-0" />
                             {f}
                           </span>
@@ -318,7 +348,9 @@ export function ExplorerShowcase() {
               </div>
               <div className="px-3 py-2.5 border-t border-border shrink-0">
                 <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-card border border-border">
-                  <span className="font-mono text-[9px] text-muted-foreground/60 flex-1">Ask anything…</span>
+                  <span className="font-mono text-[9px] text-muted-foreground/60 flex-1">
+                    Ask anything…
+                  </span>
                   <div className="w-5 h-5 rounded-md bg-primary flex items-center justify-center">
                     <span className="text-[8px] text-background font-bold">→</span>
                   </div>

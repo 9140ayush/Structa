@@ -38,7 +38,11 @@ function useTypewriter(text: string, active: boolean, speed = 18) {
   const indexRef = useRef(0);
 
   useEffect(() => {
-    if (!active) { setDisplayed(""); indexRef.current = 0; return; }
+    if (!active) {
+      setDisplayed("");
+      indexRef.current = 0;
+      return;
+    }
     const interval = setInterval(() => {
       if (indexRef.current < text.length) {
         setDisplayed(text.slice(0, indexRef.current + 1));
@@ -79,10 +83,7 @@ export function AIUnderstanding() {
   };
 
   return (
-    <section
-      className="relative py-24 px-4 sm:px-6"
-      aria-labelledby="ai-section-heading"
-    >
+    <section className="relative py-24 px-4 sm:px-6" aria-labelledby="ai-section-heading">
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_50%_50%_at_50%_50%,rgba(61,220,151,0.04),transparent)]" />
 
@@ -109,8 +110,8 @@ export function AIUnderstanding() {
             </span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Ask anything about a repository. Answers are grounded in the parsed module graph —
-            never a generic chatbot, always evidence-backed.
+            Ask anything about a repository. Answers are grounded in the parsed module graph — never
+            a generic chatbot, always evidence-backed.
           </p>
         </motion.div>
 
@@ -130,8 +131,12 @@ export function AIUnderstanding() {
                   <Bot className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-heading font-semibold text-sm text-foreground">Ask the Codebase</p>
-                  <p className="font-mono text-[10px] text-muted-foreground">vercel/next.js — grounded in repo data</p>
+                  <p className="font-heading font-semibold text-sm text-foreground">
+                    Ask the Codebase
+                  </p>
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    vercel/next.js — grounded in repo data
+                  </p>
                 </div>
               </div>
               <button
@@ -170,7 +175,11 @@ export function AIUnderstanding() {
                       <motion.span
                         key={item.path}
                         initial={{ opacity: 0, scale: 0.85 }}
-                        animate={evidenceStep >= i ? { opacity: 1, scale: 1 } : { opacity: 0.2, scale: 0.85 }}
+                        animate={
+                          evidenceStep >= i
+                            ? { opacity: 1, scale: 1 }
+                            : { opacity: 0.2, scale: 0.85 }
+                        }
                         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                         className={`flex items-center gap-1 px-2.5 py-1 rounded-full font-mono text-xs border transition-all ${
                           evidenceStep >= i
@@ -236,7 +245,10 @@ export function AIUnderstanding() {
                   <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
                     <Bot className="w-5 h-5 text-accent" />
                   </div>
-                  <p className="text-sm font-mono">Press <span className="text-accent font-semibold">Play Demo</span> to see AI → Evidence → Explanation</p>
+                  <p className="text-sm font-mono">
+                    Press <span className="text-accent font-semibold">Play Demo</span> to see AI →
+                    Evidence → Explanation
+                  </p>
                 </div>
               )}
             </div>

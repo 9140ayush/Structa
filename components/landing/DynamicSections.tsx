@@ -33,27 +33,38 @@ function SectionSkeleton({ height }: { height: number }) {
 // ---------------------------------------------------------------------------
 
 const ExplorerShowcaseDynamic = dynamic(
-  () => import("@/components/landing/ExplorerShowcase").then((m) => ({ default: m.ExplorerShowcase })),
+  () =>
+    import("@/components/landing/ExplorerShowcase").then((m) => ({ default: m.ExplorerShowcase })),
   { ssr: false, loading: () => <SectionSkeleton height={520} /> },
 );
 
 const AIUnderstandingDynamic = dynamic(
-  () => import("@/components/landing/AIUnderstanding").then((m) => ({ default: m.AIUnderstanding })),
+  () =>
+    import("@/components/landing/AIUnderstanding").then((m) => ({ default: m.AIUnderstanding })),
   { ssr: false, loading: () => <SectionSkeleton height={480} /> },
 );
 
 const DependencyIntelligenceDynamic = dynamic(
-  () => import("@/components/landing/DependencyIntelligence").then((m) => ({ default: m.DependencyIntelligence })),
+  () =>
+    import("@/components/landing/DependencyIntelligence").then((m) => ({
+      default: m.DependencyIntelligence,
+    })),
   { ssr: false, loading: () => <SectionSkeleton height={400} /> },
 );
 
 const TechnicalPipelineDynamic = dynamic(
-  () => import("@/components/landing/TechnicalPipeline").then((m) => ({ default: m.TechnicalPipeline })),
+  () =>
+    import("@/components/landing/TechnicalPipeline").then((m) => ({
+      default: m.TechnicalPipeline,
+    })),
   { ssr: false, loading: () => <SectionSkeleton height={320} /> },
 );
 
 const CodeToUnderstandingDynamic = dynamic(
-  () => import("@/components/landing/CodeToUnderstanding").then((m) => ({ default: m.CodeToUnderstanding })),
+  () =>
+    import("@/components/landing/CodeToUnderstanding").then((m) => ({
+      default: m.CodeToUnderstanding,
+    })),
   { ssr: false, loading: () => <SectionSkeleton height={500} /> },
 );
 

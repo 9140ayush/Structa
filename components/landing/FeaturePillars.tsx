@@ -172,7 +172,9 @@ export function FeaturePillars() {
                 }}
               >
                 {/* Icon */}
-                <div className={`w-10 h-10 rounded-[10px] ${c.bg} border ${c.border} flex items-center justify-center ${c.text} mb-4`}>
+                <div
+                  className={`w-10 h-10 rounded-[10px] ${c.bg} border ${c.border} flex items-center justify-center ${c.text} mb-4`}
+                >
                   <pillar.icon className="w-5 h-5" aria-hidden="true" />
                 </div>
 

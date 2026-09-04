@@ -1,12 +1,13 @@
 {
   "name": "structa-app",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --experimental-strip-types --test tests/**/*.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

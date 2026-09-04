@@ -40,10 +40,7 @@ const USE_CASES = [
 
 export function UseCases() {
   return (
-    <section
-      className="relative py-24 px-4 sm:px-6"
-      aria-labelledby="use-cases-heading"
-    >
+    <section className="relative py-24 px-4 sm:px-6" aria-labelledby="use-cases-heading">
       <div className="max-w-6xl mx-auto">
         {/* Heading */}
         <div className="text-center mb-14">

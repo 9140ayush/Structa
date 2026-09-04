@@ -50,8 +50,8 @@ export function Footer() {
               <span className="font-heading font-semibold text-base text-foreground">Structa</span>
             </Link>
             <p className="font-sans text-sm text-muted-foreground leading-relaxed">
-              Turn any GitHub repository into a navigable 3D architecture map — with AI insights
-              and a grounded codebase chat.
+              Turn any GitHub repository into a navigable 3D architecture map — with AI insights and
+              a grounded codebase chat.
             </p>
           </div>
 

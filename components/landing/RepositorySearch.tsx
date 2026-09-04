@@ -103,7 +103,7 @@ export function RepositorySearch() {
           </h2>
           <p className="mt-4 text-muted-foreground max-w-lg mx-auto">
             Paste a GitHub URL, <code className="font-mono text-accent text-sm">owner/repo</code>,
-            or shorthand. We'll build the 3D map.
+            or shorthand. We&apos;ll build the 3D map.
           </p>
         </motion.div>
 
@@ -128,7 +128,10 @@ export function RepositorySearch() {
                 id="repo-search-input"
                 type="text"
                 value={value}
-                onChange={(e) => { setValue(e.target.value); setError(null); }}
+                onChange={(e) => {
+                  setValue(e.target.value);
+                  setError(null);
+                }}
                 onKeyDown={handleKeyDown}
                 placeholder="github.com/9140ayush/Structa"
                 disabled={isResolving}
@@ -139,7 +142,11 @@ export function RepositorySearch() {
               />
               {value && !isResolving && (
                 <button
-                  onClick={() => { setValue(""); setError(null); inputRef.current?.focus(); }}
+                  onClick={() => {
+                    setValue("");
+                    setError(null);
+                    inputRef.current?.focus();
+                  }}
                   className="p-1 rounded-md text-muted-foreground hover:text-foreground transition-colors"
                   aria-label="Clear input"
                 >
@@ -192,7 +199,10 @@ export function RepositorySearch() {
             {FEATURED.map((item) => (
               <button
                 key={item.value}
-                onClick={() => { setValue(item.value); void handleResolve(item.value); }}
+                onClick={() => {
+                  setValue(item.value);
+                  void handleResolve(item.value);
+                }}
                 disabled={isResolving}
                 className="px-3 py-1 rounded-full border border-border bg-secondary/40 hover:bg-secondary hover:border-accent/40 text-xs font-mono text-foreground transition-all duration-200 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >

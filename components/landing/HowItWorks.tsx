@@ -49,11 +49,7 @@ const STEPS = [
           <div key={step.label} className="flex items-center gap-2">
             <div
               className={`w-2 h-2 rounded-full shrink-0 ${
-                step.done
-                  ? "bg-primary"
-                  : step.active
-                    ? "bg-accent animate-pulse"
-                    : "bg-border"
+                step.done ? "bg-primary" : step.active ? "bg-accent animate-pulse" : "bg-border"
               }`}
             />
             <span

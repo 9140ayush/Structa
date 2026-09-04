@@ -93,11 +93,7 @@ export function DependencyIntelligence() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section
-      ref={ref}
-      className="relative py-24 px-4 sm:px-6"
-      aria-labelledby="dep-intel-heading"
-    >
+    <section ref={ref} className="relative py-24 px-4 sm:px-6" aria-labelledby="dep-intel-heading">
       <div className="max-w-6xl mx-auto">
         {/* Heading */}
         <motion.div
@@ -193,7 +189,13 @@ export function DependencyIntelligence() {
               <ArrowRight className="w-3 h-3" />
             </p>
             {IMPORTS.map((mod, i) => (
-              <ModuleChip key={mod.name} name={mod.name} direction="out" index={i} inView={inView} />
+              <ModuleChip
+                key={mod.name}
+                name={mod.name}
+                direction="out"
+                index={i}
+                inView={inView}
+              />
             ))}
           </motion.div>
         </div>

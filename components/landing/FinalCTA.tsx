@@ -42,8 +42,8 @@ export function FinalCTA() {
         </h2>
 
         <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
-          Explore a GitHub repository and see what Structa can uncover — no account, no setup,
-          no waiting.
+          Explore a GitHub repository and see what Structa can uncover — no account, no setup, no
+          waiting.
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">

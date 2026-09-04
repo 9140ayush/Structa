@@ -21,7 +21,12 @@ const BEFORE_ITEMS = [
   { icon: Folder, label: "src/", sub: "134 files, unknown structure", dim: true },
   { icon: FileText, label: "index.ts", sub: "1,200 lines — where to start?", dim: true },
   { icon: GitBranch, label: "imports everywhere", sub: "Circular? Who knows", dim: true },
-  { icon: AlertTriangle, label: "No architecture docs", sub: "Ask senior devs... if they're free", dim: true },
+  {
+    icon: AlertTriangle,
+    label: "No architecture docs",
+    sub: "Ask senior devs... if they're free",
+    dim: true,
+  },
 ];
 
 const AFTER_ITEMS = [
@@ -76,10 +81,14 @@ function ListItem({
         <Icon className="w-4 h-4" />
       </div>
       <div className="min-w-0">
-        <p className={`text-sm font-medium font-sans ${dim ? "text-muted-foreground/50" : "text-foreground"}`}>
+        <p
+          className={`text-sm font-medium font-sans ${dim ? "text-muted-foreground/50" : "text-foreground"}`}
+        >
           {label}
         </p>
-        <p className={`text-xs font-mono mt-0.5 ${dim ? "text-muted-foreground/30" : "text-muted-foreground"}`}>
+        <p
+          className={`text-xs font-mono mt-0.5 ${dim ? "text-muted-foreground/30" : "text-muted-foreground"}`}
+        >
           {sub}
         </p>
       </div>
@@ -118,7 +127,10 @@ export function ProblemSection() {
           <p className="font-mono text-xs text-primary uppercase tracking-widest mb-3">
             The onboarding problem
           </p>
-          <h2 className="font-heading font-bold text-foreground tracking-tight" style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)" }}>
+          <h2
+            className="font-heading font-bold text-foreground tracking-tight"
+            style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)" }}
+          >
             From Confusion to{" "}
             <span className="text-primary" style={{ textShadow: "0 0 30px rgba(61,220,151,0.3)" }}>
               Clarity
@@ -202,10 +214,16 @@ export function ProblemSection() {
             { value: "Any", label: "Public GitHub repo" },
             { value: "0", label: "Lines of setup" },
           ].map((stat) => (
-            <div key={stat.label} className="text-center p-4 rounded-[10px] border border-border bg-surface">
+            <div
+              key={stat.label}
+              className="text-center p-4 rounded-[10px] border border-border bg-surface"
+            >
               <p
                 className="font-mono font-bold text-primary"
-                style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", textShadow: "0 0 24px rgba(61,220,151,0.3)" }}
+                style={{
+                  fontSize: "clamp(1.5rem, 3vw, 2rem)",
+                  textShadow: "0 0 24px rgba(61,220,151,0.3)",
+                }}
               >
                 {stat.value}
               </p>

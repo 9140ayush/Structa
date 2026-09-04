@@ -83,7 +83,10 @@ const LAYERS = [
 
 function StaticLayers() {
   return (
-    <div className="flex flex-col items-center gap-2 py-12 px-4" aria-label="Structa transformation layers">
+    <div
+      className="flex flex-col items-center gap-2 py-12 px-4"
+      aria-label="Structa transformation layers"
+    >
       {LAYERS.map((layer, i) => (
         <div
           key={layer.id}
@@ -93,7 +96,11 @@ function StaticLayers() {
             background: `${layer.color}0D`,
           }}
         >
-          <layer.icon className="w-4 h-4 shrink-0" style={{ color: layer.color }} aria-hidden="true" />
+          <layer.icon
+            className="w-4 h-4 shrink-0"
+            style={{ color: layer.color }}
+            aria-hidden="true"
+          />
           <div>
             <p className="font-mono text-xs font-semibold" style={{ color: layer.color }}>
               {layer.label}
@@ -119,7 +126,7 @@ function AnimatedLayer({
   progress,
   total,
 }: {
-  layer: typeof LAYERS[0];
+  layer: (typeof LAYERS)[0];
   index: number;
   progress: number;
   total: number;
@@ -149,7 +156,11 @@ function AnimatedLayer({
       >
         <div
           className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0"
-          style={{ background: `${layer.color}18`, border: `1px solid ${layer.color}30`, color: layer.color }}
+          style={{
+            background: `${layer.color}18`,
+            border: `1px solid ${layer.color}30`,
+            color: layer.color,
+          }}
         >
           <layer.icon className="w-4 h-4" aria-hidden="true" />
         </div>
@@ -163,7 +174,9 @@ function AnimatedLayer({
         {/* Connecting arrow to next layer */}
         {index < total - 1 && progress > 0.2 && (
           <div className="ml-auto shrink-0">
-            <span className="font-mono text-[10px]" style={{ color: layer.color }}>↓</span>
+            <span className="font-mono text-[10px]" style={{ color: layer.color }}>
+              ↓
+            </span>
           </div>
         )}
       </div>
@@ -215,8 +228,7 @@ export function CodeToUnderstanding() {
             className="font-heading font-bold text-foreground tracking-tight"
             style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)" }}
           >
-            Code{" "}
-            <span className="text-muted-foreground">→</span>{" "}
+            Code <span className="text-muted-foreground">→</span>{" "}
             <span className="text-primary" style={{ textShadow: "0 0 30px rgba(61,220,151,0.3)" }}>
               Understanding
             </span>

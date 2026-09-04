@@ -65,13 +65,7 @@ const STAGES = [
 // Particle dot along connector
 // ---------------------------------------------------------------------------
 
-function PipelineConnector({
-  index,
-  inView,
-}: {
-  index: number;
-  inView: boolean;
-}) {
+function PipelineConnector({ index, inView }: { index: number; inView: boolean }) {
   return (
     <div className="hidden lg:flex items-center justify-center w-8 shrink-0" aria-hidden="true">
       {/* Static line */}
@@ -105,11 +99,7 @@ export function TechnicalPipeline() {
   const inView = useInView(ref, { once: false, margin: "-80px" });
 
   return (
-    <section
-      ref={ref}
-      className="relative py-24 px-4 sm:px-6"
-      aria-labelledby="pipeline-heading"
-    >
+    <section ref={ref} className="relative py-24 px-4 sm:px-6" aria-labelledby="pipeline-heading">
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <motion.div
@@ -153,7 +143,11 @@ export function TechnicalPipeline() {
                     color: stage.color,
                   }}
                 >
-                  <stage.icon className="w-4.5 h-4.5" style={{ width: 18, height: 18 }} aria-hidden="true" />
+                  <stage.icon
+                    className="w-4.5 h-4.5"
+                    style={{ width: 18, height: 18 }}
+                    aria-hidden="true"
+                  />
                 </div>
                 <div className="lg:text-center min-w-0">
                   <p className="font-mono text-xs font-semibold text-foreground leading-snug">
@@ -166,9 +160,7 @@ export function TechnicalPipeline() {
               </motion.div>
 
               {/* Connector — except after last */}
-              {i < STAGES.length - 1 && (
-                <PipelineConnector index={i} inView={inView} />
-              )}
+              {i < STAGES.length - 1 && <PipelineConnector index={i} inView={inView} />}
             </React.Fragment>
           ))}
         </div>

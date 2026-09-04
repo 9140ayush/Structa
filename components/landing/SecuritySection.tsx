@@ -48,10 +48,7 @@ const TRUST_ITEMS = [
 
 export function SecuritySection() {
   return (
-    <section
-      className="relative py-24 px-4 sm:px-6"
-      aria-labelledby="security-heading"
-    >
+    <section className="relative py-24 px-4 sm:px-6" aria-labelledby="security-heading">
       <div className="max-w-5xl mx-auto">
         {/* Heading */}
         <div className="text-center mb-14">
@@ -66,8 +63,8 @@ export function SecuritySection() {
             Built with Security in Mind
           </h2>
           <p className="mt-4 text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            Structa handles GitHub credentials carefully. Here&apos;s exactly what we do — and
-            what we don&apos;t.
+            Structa handles GitHub credentials carefully. Here&apos;s exactly what we do — and what
+            we don&apos;t.
           </p>
         </div>
 
@@ -78,9 +75,7 @@ export function SecuritySection() {
               key={item.title}
               className="flex flex-col gap-3 p-5 rounded-[16px] border border-border bg-surface hover:border-primary/25 transition-colors"
             >
-              <div
-                className="w-9 h-9 rounded-[8px] bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0"
-              >
+              <div className="w-9 h-9 rounded-[8px] bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
                 <item.icon className="w-4 h-4" aria-hidden="true" />
               </div>
               <div>
@@ -97,8 +92,8 @@ export function SecuritySection() {
 
         {/* Honest disclaimer */}
         <p className="mt-10 text-center font-mono text-xs text-muted-foreground/50 max-w-md mx-auto leading-relaxed">
-          We do not claim SOC 2 compliance or any formal security certification at this time.
-          The above describes our current implemented security practices.
+          We do not claim SOC 2 compliance or any formal security certification at this time. The
+          above describes our current implemented security practices.
         </p>
       </div>
     </section>

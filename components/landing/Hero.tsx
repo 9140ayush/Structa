@@ -27,7 +27,10 @@ export function Hero() {
       {/* Subtle dot-grid */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.06]"
-        style={{ backgroundImage: "radial-gradient(#EDEFF3 1px, transparent 1px)", backgroundSize: "28px 28px" }}
+        style={{
+          backgroundImage: "radial-gradient(#EDEFF3 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
       />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-8 py-16 lg:py-24">
@@ -46,10 +49,7 @@ export function Hero() {
             style={{ fontSize: "clamp(2.4rem, 5.5vw, 3.6rem)" }}
           >
             Understand Any Codebase.{" "}
-            <span
-              className="text-primary"
-              style={{ textShadow: "0 0 40px rgba(61,220,151,0.35)" }}
-            >
+            <span className="text-primary" style={{ textShadow: "0 0 40px rgba(61,220,151,0.35)" }}>
               Before You Touch
             </span>{" "}
             the Code.
