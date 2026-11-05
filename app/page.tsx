@@ -1,147 +1,101 @@
 /**
- * app/page.tsx — Structa landing page (redesigned).
+ * app/page.tsx — Structa marketing landing page.
  *
- * Server Component — static shell for fast first paint.
- * Heavy 3D and interactive sections use Client Component wrappers (DynamicSections)
- * because Next.js 16.2.11 breaking change: ssr:false is NOT allowed in Server Components.
+ * Phase 13 — Dual-Theme UI Overhaul.
+ * Server Component static shell for instant first paint and CDN caching.
  *
  * Architecture.md §3: Marketing routes are SSG/ISR.
- * Rules.md §2: No secrets in client bundle; 3D canvas always ssr:false.
+ * Compositional rhythm inspired by incident.io:
+ * 1. Navbar (Sticky, Clerk auth aware, with ThemeToggle)
+ * 2. Hero (Centered headline, subcopy, 2 pill CTAs, rounded product-mockup frame)
+ * 3. TechCredibilityStrip (Real supported tech logos/badges)
+ * 4. ProblemSolutionTabs (Pill tabs: Architecture Drift, Slow Onboarding, Loops, Refactoring)
+ * 5. PlatformRadialDiagram (Core 3D engine + 12 satellite views)
+ * 6. GradientBand (4 equal glass cards: Copilot, Module Summaries, Tarjan Cycles, Webhook Sync)
+ * 7. AlternatingFeatures (4 alternating 2-column feature deep dives)
+ * 8. RepositorySearch (Real live explorer input with quick repo pills)
+ * 9. PricingTeaser (Free, Pro, Org tiers with toggle and test mode badge)
+ * 10. FinalCTA (Full-bleed gradient CTA band with pill buttons)
+ * 11. Footer (Multi-column links, live status badge, and embedded ThemeToggle)
  */
 
-import { Suspense } from "react";
+import React from "react";
 import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
-import { ProblemSection } from "@/components/landing/ProblemSection";
-import { HowItWorks } from "@/components/landing/HowItWorks";
+import { TechCredibilityStrip } from "@/components/landing/TechCredibilityStrip";
+import { ProblemSolutionTabs } from "@/components/landing/ProblemSolutionTabs";
+import { PlatformRadialDiagram } from "@/components/landing/PlatformRadialDiagram";
+import { GradientBand } from "@/components/landing/GradientBand";
+import { AlternatingFeatures } from "@/components/landing/AlternatingFeatures";
 import { RepositorySearch } from "@/components/landing/RepositorySearch";
-import { FeaturePillars } from "@/components/landing/FeaturePillars";
-import { UseCases } from "@/components/landing/UseCases";
-import { SecuritySection } from "@/components/landing/SecuritySection";
-import { Footer } from "@/components/landing/Footer";
+import { PricingTeaser } from "@/components/landing/PricingTeaser";
 import { FinalCTA } from "@/components/landing/FinalCTA";
-// Client Component barrel: all ssr:false dynamic imports must live in a Client Component
-// (Next.js 16.2.11 breaking change — see AGENTS.md)
-import {
-  ExplorerShowcaseSection,
-  AIUnderstandingSection,
-  DependencyIntelligenceSection,
-  TechnicalPipelineSection,
-  CodeToUnderstandingSection,
-} from "@/components/landing/DynamicSections";
+import { Footer } from "@/components/landing/Footer";
 
-// ---------------------------------------------------------------------------
-// Loading skeleton for Suspense boundaries
-// ---------------------------------------------------------------------------
-
-function SectionSkeleton({ height }: { height: number }) {
-  return (
-    <div
-      className="w-full animate-pulse rounded-[16px] bg-surface/30"
-      style={{ height, margin: "0 auto" }}
-      aria-hidden="true"
-    />
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Divider / visual separator
-// ---------------------------------------------------------------------------
-
+// Visual divider
 function SectionDivider() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6">
-      <div className="h-px bg-border/50" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="h-px bg-border/60" />
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
-
 export default function LandingPage() {
   return (
     <>
-      {/* Sticky Navbar — Client Component for scroll state + Clerk Show */}
+      {/* Sticky Top Navbar */}
       <Navbar />
 
       <main id="main-content">
-        {/* §5.2 Hero — static shell + Client Component 3D graph shell */}
+        {/* 1. Hero: Centered headline, 2 pill CTAs, and large product-mockup frame */}
         <Hero />
 
-        <SectionDivider />
+        {/* 2. Credibility strip: Real technologies Structa supports and parses */}
+        <TechCredibilityStrip />
 
-        {/* §5.3 Problem → Solution */}
-        <ProblemSection />
-
-        <SectionDivider />
-
-        {/* Signature exploded visual — Client Component (ssr:false) */}
-        <Suspense fallback={<SectionSkeleton height={500} />}>
-          <CodeToUnderstandingSection />
-        </Suspense>
+        {/* 3. Problem / Solution Pill Tabs */}
+        <ProblemSolutionTabs />
 
         <SectionDivider />
 
-        {/* §5.5 Live repository search — wired to real explorer resolve API */}
-        <RepositorySearch />
+        {/* 4. Platform Radial Architecture: Core 3D engine + 12 satellite views */}
+        <PlatformRadialDiagram />
+
+        {/* 5. Full-bleed gradient band with 4 equal glass cards */}
+        <GradientBand />
+
+        {/* 6. Alternating deep-dive feature sections with mockup + icon-tab row */}
+        <AlternatingFeatures />
 
         <SectionDivider />
 
-        {/* §5.6 How It Works */}
-        <HowItWorks />
+        {/* 7. Live Interactive Repository Explorer Search */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
+              Live Interactive Explorer
+            </span>
+            <h2 className="text-3xl font-heading font-bold text-foreground tracking-tight mt-2">
+              Try It on Any Public GitHub Repository
+            </h2>
+            <p className="mt-3 text-muted-foreground text-sm sm:text-base">
+              Enter any repository URL or shorthand below to extract and visualize its Abstract Syntax Tree in real-time.
+            </p>
+          </div>
+          <RepositorySearch />
+        </section>
 
         <SectionDivider />
 
-        {/* §5.7 Explorer showcase — product UI recreation */}
-        <Suspense fallback={<SectionSkeleton height={520} />}>
-          <ExplorerShowcaseSection />
-        </Suspense>
+        {/* 8. Pricing Teaser */}
+        <PricingTeaser />
 
-        <SectionDivider />
-
-        {/* §5.8 AI Understanding */}
-        <Suspense fallback={<SectionSkeleton height={480} />}>
-          <AIUnderstandingSection />
-        </Suspense>
-
-        <SectionDivider />
-
-        {/* §5.9 Dependency Intelligence */}
-        <Suspense fallback={<SectionSkeleton height={400} />}>
-          <DependencyIntelligenceSection />
-        </Suspense>
-
-        <SectionDivider />
-
-        {/* §5.10 Feature Pillars */}
-        <FeaturePillars />
-
-        <SectionDivider />
-
-        {/* §5.11 Use Cases */}
-        <UseCases />
-
-        <SectionDivider />
-
-        {/* §5.12 Technical Pipeline */}
-        <Suspense fallback={<SectionSkeleton height={320} />}>
-          <TechnicalPipelineSection />
-        </Suspense>
-
-        <SectionDivider />
-
-        {/* §5.13 Security */}
-        <SecuritySection />
-
-        <SectionDivider />
-
-        {/* §5.14 Final CTA */}
+        {/* 9. Full-Bleed Final Call-to-Action */}
         <FinalCTA />
       </main>
 
-      {/* §5.15 Footer */}
+      {/* 10. Multi-column Footer with status indicator & ThemeToggle */}
       <Footer />
     </>
   );

@@ -2,12 +2,15 @@
  * app/(explorer)/layout.tsx — Layout for the explorer route group.
  *
  * Structure mirrors Dashboard layout: top header, max-w-7xl px-4 sm:px-6 lg:px-8 py-8 main, footer.
+ * Includes ThemeToggle for dual-theme switching.
  */
 
 import React from "react";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { NavbarUserMenu } from "@/components/shared/NavbarUserMenu";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { StructaLogoBadge } from "@/components/shared/StructaLogo";
 
 export default function ExplorerLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,42 +22,42 @@ export default function ExplorerLayout({ children }: { children: React.ReactNode
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/65 backdrop-blur-md shrink-0">
+      <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <Link href="/explorer" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-background font-mono font-bold text-lg shadow-glow-accent transition-all duration-300 group-hover:scale-105">
-                S
-              </div>
+            <Link href="/explorer" className="flex items-center gap-2.5 group">
+              <StructaLogoBadge size="md" accent className="group-hover:scale-105" />
               <span className="font-heading font-semibold text-lg tracking-tight text-foreground group-hover:text-accent transition-colors">
                 Structa
               </span>
               <span className="font-mono text-[10px] text-accent/80 bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">
-                v0.1.0
+                v1.3
               </span>
             </Link>
 
             <div className="h-6 w-px bg-border" />
 
             {/* Mode Switcher */}
-            <div className="flex items-center bg-secondary/50 p-0.5 rounded-lg border border-border">
+            <div className="flex items-center bg-secondary/60 p-0.5 rounded-lg border border-border">
               <Link
                 href="/dashboard"
-                className="px-3 py-1 px-[10px] rounded-md text-xs font-mono font-medium transition-all text-muted-foreground hover:text-foreground"
+                className="px-3 py-1 rounded-md text-xs font-mono font-medium transition-all text-muted-foreground hover:text-foreground"
               >
                 Workspace
               </Link>
               <Link
                 href="/explorer"
-                className="px-3 py-1 px-[10px] rounded-md text-xs font-mono font-medium transition-all bg-accent text-background shadow-sm"
+                className="px-3 py-1 rounded-md text-xs font-mono font-medium transition-all bg-accent text-accent-foreground shadow-sm"
               >
                 Explorer
               </Link>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <div className="h-5 w-px bg-border mx-1" />
             <NavbarUserMenu />
           </div>
         </div>

@@ -3,6 +3,8 @@ import { OrganizationSwitcher } from "@clerk/nextjs";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { NavbarUserMenu } from "@/components/shared/NavbarUserMenu";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { StructaLogoBadge } from "@/components/shared/StructaLogo";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,19 +16,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/65 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <Link href="/dashboard" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-background font-mono font-bold text-lg shadow-glow-primary transition-all duration-300 group-hover:scale-105">
-                S
-              </div>
+            <Link href="/dashboard" className="flex items-center gap-2.5 group">
+              <StructaLogoBadge size="md" className="group-hover:scale-105" />
               <span className="font-heading font-semibold text-lg tracking-tight text-foreground group-hover:text-primary transition-colors">
                 Structa
               </span>
               <span className="font-mono text-[10px] text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
-                v0.1.0
+                v1.3
               </span>
             </Link>
 
@@ -50,16 +50,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             {/* Mode Switcher */}
-            <div className="flex items-center bg-secondary/50 p-0.5 rounded-lg border border-border">
+            <div className="flex items-center bg-secondary/60 p-0.5 rounded-lg border border-border">
               <Link
                 href="/dashboard"
-                className="px-3 py-1 px-[10px] rounded-md text-xs font-mono font-medium transition-all bg-primary text-background shadow-sm"
+                className="px-3 py-1 rounded-md text-xs font-mono font-medium transition-all bg-primary text-primary-foreground shadow-sm"
               >
                 Workspace
               </Link>
               <Link
                 href="/explorer"
-                className="px-3 py-1 px-[10px] rounded-md text-xs font-mono font-medium transition-all text-muted-foreground hover:text-foreground"
+                className="px-3 py-1 rounded-md text-xs font-mono font-medium transition-all text-muted-foreground hover:text-foreground"
               >
                 Explorer
               </Link>
@@ -76,7 +76,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* Mobile Admin Link */}
             <Link
               href="/admin"
@@ -103,7 +106,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             {/* User Button & Name */}
-            <div className="flex items-center gap-2.5 border-l border-border pl-4">
+            <div className="flex items-center gap-2.5 border-l border-border pl-3">
               <NavbarUserMenu />
             </div>
           </div>

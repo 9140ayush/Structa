@@ -14,6 +14,7 @@ import React, { useRef, useState } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { HealthScoreRing } from "@/components/shared/HealthScoreRing";
 import { FileCode, Folder, ChevronRight, Bot, Globe, GitBranch, Star, Loader2 } from "lucide-react";
+import { StructaLogoBadge } from "@/components/shared/StructaLogo";
 
 // ---------------------------------------------------------------------------
 // Mock tree data
@@ -115,12 +116,7 @@ export function ExplorerShowcase() {
           {/* Repo header bar */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-elevated">
             <div className="flex items-center gap-3">
-              <div
-                className="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-background font-mono font-bold text-xs"
-                style={{ boxShadow: "0 0 12px rgba(61,220,151,0.4)" }}
-              >
-                S
-              </div>
+              <StructaLogoBadge size="sm" />
               <div>
                 <p className="font-mono text-xs font-semibold text-foreground">vercel / next.js</p>
                 <div className="flex items-center gap-2 mt-0.5">

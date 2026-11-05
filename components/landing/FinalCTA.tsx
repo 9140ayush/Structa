@@ -1,73 +1,70 @@
+"use client";
+
 /**
- * components/landing/FinalCTA.tsx — Closing call-to-action.
+ * components/landing/FinalCTA.tsx
  *
- * Primary: "Explore a GitHub Repository" → /explorer
- * Secondary: "Connect GitHub" → /sign-in
- * Reuses dynamically imported HeroRepositoryGraph at smaller scale.
+ * Phase 13 — Dual-Theme UI Overhaul.
+ * Full-bleed CTA band with dual-theme gradient, pill CTAs,
+ * and high-contrast typography compliant with design.md.
  */
 
+import React from "react";
 import Link from "next/link";
-import { ArrowRight, GitBranch } from "lucide-react";
-import { HeroGraphShell } from "./HeroGraphShell";
+import { ArrowRight, Compass, ShieldCheck } from "lucide-react";
 
 export function FinalCTA() {
   return (
     <section
-      className="relative py-24 px-4 sm:px-6 overflow-hidden"
+      className="relative w-full py-24 px-4 sm:px-6 lg:px-8 border-t border-border/80 overflow-hidden bg-gradient-to-b from-surface via-primary/5 to-surface-elevated dark:from-background dark:via-primary/10 dark:to-background"
       aria-labelledby="final-cta-heading"
     >
-      {/* Background graph (reuse hero R3F component at smaller scale) */}
-      <div className="absolute inset-0 opacity-30 pointer-events-none" aria-hidden="true">
-        <HeroGraphShell />
-      </div>
+      {/* Background ambient glow */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-primary/10 blur-[120px] pointer-events-none"
+        aria-hidden="true"
+      />
 
-      {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background pointer-events-none" />
-
-      {/* Content */}
-      <div className="relative z-10 max-w-2xl mx-auto text-center">
-        <p className="font-mono text-xs text-primary uppercase tracking-widest mb-4">
-          Ready to explore?
-        </p>
+      <div className="relative max-w-4xl mx-auto text-center z-10">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary font-mono text-xs font-semibold mb-6">
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>Zero Configuration Required • 100% Free For Public Repos</span>
+        </div>
 
         <h2
           id="final-cta-heading"
-          className="font-heading font-bold text-foreground tracking-tight"
-          style={{ fontSize: "clamp(2rem, 5vw, 3rem)" }}
+          className="text-3xl sm:text-5xl font-heading font-bold text-foreground tracking-tight leading-tight"
         >
           Your Next Codebase Is Waiting to Be{" "}
-          <span className="text-primary" style={{ textShadow: "0 0 40px rgba(61,220,151,0.35)" }}>
-            Understood.
-          </span>
+          <span className="text-primary inline-block">Understood.</span>
         </h2>
 
-        <p className="mt-5 text-lg text-muted-foreground leading-relaxed">
-          Explore a GitHub repository and see what Structa can uncover — no account, no setup, no
-          waiting.
+        <p className="mt-5 text-base sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+          Explore any open-source GitHub repository in seconds, or connect your private team
+          workspace to automate architectural governance.
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link
+            href="/sign-up"
+            id="final-cta-connect"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-primary text-primary-foreground font-sans font-semibold text-base hover:opacity-95 transition-all shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            <span>Connect a Repository</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+
           <Link
             href="/explorer"
-            id="final-cta-primary"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-[12px] bg-primary hover:bg-primary-hover text-background font-sans font-semibold text-base transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            style={{ boxShadow: "0 0 32px rgba(61,220,151,0.40)" }}
+            id="final-cta-explore"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full border border-border bg-surface/90 hover:bg-surface text-foreground font-sans font-semibold text-base transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
-            Explore a GitHub Repository
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link
-            href="/sign-in"
-            id="final-cta-secondary"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-[12px] border border-border bg-secondary/40 hover:bg-secondary text-foreground font-sans font-medium text-base transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            <GitBranch className="w-5 h-5" aria-hidden="true" />
-            Connect GitHub
+            <Compass className="w-4 h-4 text-muted-foreground" />
+            <span>Explore Public Repositories</span>
           </Link>
         </div>
 
-        <p className="mt-6 font-mono text-xs text-muted-foreground">
-          Explorer Mode is always free · Workspace Mode for private repos
+        <p className="mt-5 font-mono text-xs text-muted-foreground">
+          Explorer Mode is always free &middot; Workspace Mode includes private repos &amp; RBAC
         </p>
       </div>
     </section>

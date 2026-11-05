@@ -6,10 +6,10 @@ This file is the single source of truth for **where things stand** — never for
 
 ## Current Status Overview
 
-* **Current Phase**: Phase 10 — Production Hardening, Deployment & Final Release (Completed)
-* **Latest Milestone**: `M10` (Phase 10 — Production Readiness)
-* **Tags Present**: `v0.1.0`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v0.5.0`, `v0.6.0`, `v0.7.0`, `v0.8.0`, `v0.9.0`, `v1.0.0`
-* **Target Release**: `v1.0.0` — Production Launch
+* **Current Phase**: Phase 13 — Dual-Theme UI Overhaul (Dark default + Light option)
+* **Latest Milestone**: `M13.2` (Task 13.2 — Marketing Site & Pricing Redesign Complete)
+* **Tags Present**: `v0.1.0` through `v1.2.0`
+* **Target Release**: `v1.3.0` — Dual-Theme Architecture Intelligence Release
 
 ---
 
@@ -26,6 +26,15 @@ This file is the single source of truth for **where things stand** — never for
 - [x] **Phase 8 — Advanced Workspace Intelligence**: Sticky-note annotations (`/api/annotations`), commit snapshots (`/api/repos/[repoId]/snapshots`), 3D visual diff comparison dashboard (`/repos/[repoId]/snapshots`), Tarjan's SCC cycle detection engine, complexity heatmap, module visit logging (`ModuleVisit`), contributor activity timeline (`/repos/[repoId]/analytics`).
 - [x] **Phase 9 — Billing, RBAC & Private Repository Security**: Subscription tiers (Free/Pro/Org), test-mode billing notice, member seats management, RBAC permission matrix, security audit logging (`/admin`), AES-256 token encryption specs, Explorer isolation defense.
 - [x] **Phase 10 — Production Hardening, Deployment & Scalability**: Production health API (`/api/health`), Vercel deployment guide (`files/deployment.md`), MongoDB connection pooling review, zero documentation deletion, clean production bundle, cross-mode regression testing, release `v1.0.0`.
+- [x] **Phase 11 — Interactive 3D Visualization Hardening**: Particle flow animations, LOD thresholding, cluster physics stabilization (`v1.1.0`).
+- [x] **Phase 12 — Architecture & Story Expansion**: 13 unified views shipped (2D Architecture, Reading Path, Repo Story, Flows, Health) (`v1.2.0`).
+- [/] **Phase 13 — Dual-Theme UI Overhaul (Dark default + Light option)**:
+  - [x] Task 13.0: Audit, Proposal & Design Alignment (Approved)
+  - [x] Task 13.1: Theme Foundation & Zero-FOUC Architecture (`structa-theme` cookie, `app/globals.css` dual tokens, blocking head script, Clerk token mapping, `ThemeProvider`, `useTheme`, `ThemeToggle`, `ThemeSegmentedControl`, `Toaster`)
+  - [x] Task 13.2: Marketing Site & Pricing Redesign (`Hero` with centered layout & SVG product mockup frame, `TechCredibilityStrip`, `ProblemSolutionTabs`, `PlatformRadialDiagram`, `GradientBand` with 4 glass cards, `AlternatingFeatures`, `RepositorySearch`, `PricingTeaser`, `app/pricing/page.tsx`, `FinalCTA`, `Footer` with `ThemeToggle`)
+  - [ ] Task 13.3: App Shell, Settings, Explorer Chrome
+  - [ ] Task 13.4: Repository Intelligence Views (13 Views scoped)
+  - [ ] Task 13.5: QA, Documentation & Release Prep (`v1.3.0`)
 
 ---
 

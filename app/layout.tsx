@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Geist, JetBrains_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
 const inter = Inter({
@@ -37,18 +39,49 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0A0C10" },
+    { media: "(prefers-color-scheme: light)", color: "#F7F8FA" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider afterSignOutUrl="/">
+    <ClerkProvider
+      afterSignOutUrl="/"
+      appearance={{
+        variables: {
+          colorPrimary: "var(--primary)",
+          colorPrimaryForeground: "var(--primary-foreground)",
+          colorForeground: "var(--foreground)",
+          colorMutedForeground: "var(--muted-foreground)",
+          colorBackground: "var(--card)",
+          colorInput: "var(--background)",
+          colorInputForeground: "var(--foreground)",
+          borderRadius: "0.375rem",
+        },
+      }}
+    >
       <html
         lang="en"
+        suppressHydrationWarning
         className={`${inter.variable} ${geistSans.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
       >
-        <body className="min-h-full flex flex-col">{children}</body>
+        <head>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: themeInitScript,
+            }}
+          />
+        </head>
+        <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-foreground">
+          <ThemeProvider>{children}</ThemeProvider>
+        </body>
       </html>
     </ClerkProvider>
   );
