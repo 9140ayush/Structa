@@ -217,10 +217,7 @@ export default function PricingPage() {
                 </thead>
                 <tbody className="divide-y divide-border/60">
                   {COMPARISON_ROWS.map((row, idx) => (
-                    <tr
-                      key={idx}
-                      className="hover:bg-surface-elevated/30 transition-colors"
-                    >
+                    <tr key={idx} className="hover:bg-surface-elevated/30 transition-colors">
                       <td className="py-3.5 px-6 font-sans text-foreground/90">
                         <span className="block font-medium">{row.name}</span>
                         <span className="block font-mono text-[10px] text-muted-foreground mt-0.5">
@@ -287,10 +284,7 @@ export default function PricingPage() {
 
           <div className="space-y-4">
             {FAQS.map((faq, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-border bg-surface p-6 shadow-sm"
-              >
+              <div key={idx} className="rounded-xl border border-border bg-surface p-6 shadow-sm">
                 <h3 className="font-heading font-semibold text-base text-foreground flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 text-primary shrink-0" />
                   <span>{faq.q}</span>
@@ -336,4 +330,3 @@ export default function PricingPage() {
     </>
   );
 }
-

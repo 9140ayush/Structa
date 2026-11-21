@@ -183,7 +183,10 @@ export function ProblemSolutionTabs() {
   const activeTab = TABS.find((t) => t.id === activeTabId) ?? TABS[0];
 
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" aria-labelledby="problem-heading">
+    <section
+      className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+      aria-labelledby="problem-heading"
+    >
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto mb-14">
         <span className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
@@ -216,7 +219,9 @@ export function ProblemSolutionTabs() {
                   : "bg-surface/80 hover:bg-surface border-border text-muted-foreground hover:text-foreground font-medium"
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? "text-primary-foreground" : "text-primary"}`} />
+              <Icon
+                className={`w-4 h-4 ${isActive ? "text-primary-foreground" : "text-primary"}`}
+              />
               <div>
                 <span className="block text-xs font-sans leading-none">{tab.pillLabel}</span>
               </div>
@@ -287,7 +292,10 @@ export function ProblemSolutionTabs() {
 
                 <ul className="mt-6 space-y-3.5">
                   {activeTab.solution.points.map((pt, i) => (
-                    <li key={i} className="flex items-start gap-3 text-sm text-foreground/90 font-medium">
+                    <li
+                      key={i}
+                      className="flex items-start gap-3 text-sm text-foreground/90 font-medium"
+                    >
                       <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                       <span>{pt}</span>
                     </li>
@@ -311,4 +319,3 @@ export function ProblemSolutionTabs() {
     </section>
   );
 }
-

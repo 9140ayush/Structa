@@ -12,7 +12,7 @@
  *
  * Rate-limited by Upstash (5 syncs/user/hour) — see lib/ratelimit.ts.
  */
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { connectToDatabase } from "@/lib/mongodb";
@@ -382,9 +382,15 @@ export async function POST(
       syncedAt: new Date().toISOString(),
     };
 
-    // Fire-and-forget: AI summarization runs independently after sync response.
-    // Errors are caught internally in summarizeModuleBatch — never propagate here.
-    void runAISummarization(repo._id, parseResult.modules, contentMap, pathToId);
+    // Schedule AI summarization after sync response is returned.
+    // Uses Next.js after() to keep the serverless execution context alive on Vercel.
+    after(async () => {
+      try {
+        await runAISummarization(repo._id, parseResult.modules, contentMap, pathToId);
+      } catch (bgErr: unknown) {
+        console.error("[sync] Background summarization failed:", bgErr);
+      }
+    });
 
     if (!rateLimitPassed) {
       return NextResponse.json(result, {
@@ -439,9 +445,20 @@ async function runAISummarization(
       };
     });
 
-    if (inputs.length === 0) return;
+    if (inputs.length === 0) {
+      await Repository.findByIdAndUpdate(repoId, {
+        aiSummariesStatus: "completed",
+        aiSummariesError: "",
+      });
+      return;
+    }
 
     console.log(`[summarize] Starting AI summarization for ${inputs.length} file modules...`);
+
+    await Repository.findByIdAndUpdate(repoId, {
+      aiSummariesStatus: "generating",
+      aiSummariesError: "",
+    });
 
     // Mark all file modules as 'generating' before starting
     const generatingIds = fileModules
@@ -450,7 +467,7 @@ async function runAISummarization(
 
     if (generatingIds.length > 0) {
       await Module.updateMany(
-        { _id: { $in: generatingIds }, summaryStatus: "pending" },
+        { _id: { $in: generatingIds }, summaryStatus: { $in: ["pending", "failed"] } },
         { $set: { summaryStatus: "generating" } },
       );
     }
@@ -470,6 +487,7 @@ async function runAISummarization(
               $set: {
                 summary: result.summary,
                 summaryStatus: result.status,
+                summaryError: result.error || "",
               },
             },
           },
@@ -481,12 +499,42 @@ async function runAISummarization(
       await Module.bulkWrite(writeOps);
     }
 
+    // Determine final status
+    const finalStatus =
+      batchResult.failed > 0 && batchResult.done === 0
+        ? "failed"
+        : batchResult.failed > 0
+          ? "partial"
+          : "completed";
+
+    let firstError = "";
+    for (const res of batchResult.results.values()) {
+      if (res.error) {
+        firstError = res.error;
+        break;
+      }
+    }
+
+    await Repository.findByIdAndUpdate(repoId, {
+      aiSummariesStatus: finalStatus,
+      aiSummariesError: firstError,
+    });
+
     console.log(
       `[summarize] Completed: ${batchResult.done} done, ${batchResult.skipped} skipped, ${batchResult.failed} failed.`,
     );
   } catch (err: unknown) {
     // Never propagate — this is fire-and-forget
+    const errMsg = err instanceof Error ? err.message : String(err);
     console.error("[summarize] Unexpected error in runAISummarization:", err);
+    try {
+      await Repository.findByIdAndUpdate(repoId, {
+        aiSummariesStatus: "failed",
+        aiSummariesError: errMsg,
+      });
+    } catch {
+      // Ignore DB write error in catch
+    }
   }
 }
 

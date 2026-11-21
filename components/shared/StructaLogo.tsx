@@ -117,4 +117,3 @@ export function StructaLogo({
 
   return <StructaLogoBadge size={size} className={className} accent={accent} />;
 }
-

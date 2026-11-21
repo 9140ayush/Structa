@@ -68,8 +68,9 @@ export function Footer() {
             </Link>
 
             <p className="font-sans text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Continuous 3D architecture intelligence for engineering teams. Understand dependencies,
-              isolate circular loops, and query your codebase with AST-grounded citations.
+              Continuous 3D architecture intelligence for engineering teams. Understand
+              dependencies, isolate circular loops, and query your codebase with AST-grounded
+              citations.
             </p>
 
             {/* Operational Status Pill */}

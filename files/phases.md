@@ -654,8 +654,8 @@ Turn repository analysis into a human-readable explanation.
 
 ### Tasks
 
-* [ ] Build dedicated AI Explanation section.
-* [ ] Generate:
+* [x] Build dedicated AI Explanation section.
+* [x] Generate:
 
   * What the project does
   * How the project works
@@ -665,15 +665,15 @@ Turn repository analysis into a human-readable explanation.
   * External integrations
   * Data flow
   * Major dependencies
-* [ ] Reuse existing AI summarization infrastructure.
-* [ ] Reuse existing module summaries.
-* [ ] Ground explanations in analyzed repository data.
-* [ ] Reference actual files/modules.
-* [ ] Make file references clickable.
-* [ ] Add confidence/fallback behavior when information cannot be confidently inferred.
-* [ ] Avoid presenting unsupported architectural assumptions as facts.
-* [ ] Add **Explain like I'm a beginner** mode.
-* [ ] Add **Explain technically** mode.
+* [x] Reuse existing AI summarization infrastructure.
+* [x] Reuse existing module summaries.
+* [x] Ground explanations in analyzed repository data.
+* [x] Reference actual files/modules.
+* [x] Make file references clickable.
+* [x] Add confidence/fallback behavior when information cannot be confidently inferred.
+* [x] Avoid presenting unsupported architectural assumptions as facts.
+* [x] Add **Explain like I'm a beginner** mode.
+* [x] Add **Explain technically** mode.
 
 ### Acceptance Criteria
 

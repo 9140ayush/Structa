@@ -81,15 +81,9 @@ export function Toaster({
             }`}
           >
             <div className="flex items-center gap-2.5">
-              {t.type === "success" && (
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              )}
-              {t.type === "error" && (
-                <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
-              )}
-              {t.type === "info" && (
-                <Info className="h-4 w-4 text-accent shrink-0" />
-              )}
+              {t.type === "success" && <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />}
+              {t.type === "error" && <AlertCircle className="h-4 w-4 text-destructive shrink-0" />}
+              {t.type === "info" && <Info className="h-4 w-4 text-accent shrink-0" />}
               <span className="text-sm font-medium">{t.message}</span>
             </div>
             {onDismiss && (
@@ -108,4 +102,3 @@ export function Toaster({
     </div>
   );
 }
-

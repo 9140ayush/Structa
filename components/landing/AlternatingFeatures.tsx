@@ -64,7 +64,9 @@ export function AlternatingFeatures() {
               <span className="font-mono text-xs font-semibold text-primary uppercase">
                 Technical Architecture Spec
               </span>
-              <span className="font-mono text-[11px] text-muted-foreground">Force-Directed AST</span>
+              <span className="font-mono text-[11px] text-muted-foreground">
+                Force-Directed AST
+              </span>
             </div>
             <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed font-sans">
               Extracts raw ECMAScript and TypeScript AST import trees in real-time, executing
@@ -191,7 +193,11 @@ export function AlternatingFeatures() {
                       <span className="font-mono text-primary font-semibold">
                         authInterceptor.ts
                       </span>
-                      . It detects <code className="font-mono text-[11px] bg-background px-1 py-0.5 rounded">401 UNAUTHORIZED</code> and triggers the token refresh queue.
+                      . It detects{" "}
+                      <code className="font-mono text-[11px] bg-background px-1 py-0.5 rounded">
+                        401 UNAUTHORIZED
+                      </code>{" "}
+                      and triggers the token refresh queue.
                     </p>
                     <div className="pt-2 border-t border-border/60 flex flex-wrap gap-2">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 border border-primary/20 text-primary font-mono text-[10px] font-semibold">
@@ -250,8 +256,9 @@ export function AlternatingFeatures() {
           </h2>
 
           <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Generic LLMs guess how code operates based on common patterns. Structa feeds the verified
-            Abstract Syntax Tree into the prompt context so every answer cites concrete line ranges.
+            Generic LLMs guess how code operates based on common patterns. Structa feeds the
+            verified Abstract Syntax Tree into the prompt context so every answer cites concrete
+            line ranges.
           </p>
 
           {/* Proof / Context Card */}
@@ -465,8 +472,8 @@ export function AlternatingFeatures() {
                         item.done
                           ? "bg-primary text-primary-foreground"
                           : item.active
-                          ? "bg-primary/20 text-primary border border-primary/30"
-                          : "bg-secondary text-muted-foreground"
+                            ? "bg-primary/20 text-primary border border-primary/30"
+                            : "bg-secondary text-muted-foreground"
                       }`}
                     >
                       {item.step}
@@ -524,8 +531,9 @@ export function AlternatingFeatures() {
           </h2>
 
           <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Stop handing new team members a 200-file repository with &quot;start with index.js&quot;.
-            Structa calculates topological prerequisites and sequences an optimal reading path.
+            Stop handing new team members a 200-file repository with &quot;start with
+            index.js&quot;. Structa calculates topological prerequisites and sequences an optimal
+            reading path.
           </p>
 
           {/* Proof / Velocity Card */}
@@ -534,7 +542,9 @@ export function AlternatingFeatures() {
               <span className="font-mono text-xs font-semibold text-primary uppercase">
                 Topological Sequence Analysis
               </span>
-              <span className="font-mono text-[11px] text-muted-foreground">Kahn&apos;s Algorithm</span>
+              <span className="font-mono text-[11px] text-muted-foreground">
+                Kahn&apos;s Algorithm
+              </span>
             </div>
             <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed font-sans">
               Orders files according to prerequisite depth so engineers learn foundational schemas
@@ -555,4 +565,3 @@ export function AlternatingFeatures() {
     </div>
   );
 }
-

@@ -109,7 +109,9 @@ export function Hero() {
             <div className="flex-1 max-w-md mx-auto hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border border-border/80 bg-background/60 font-mono text-xs text-muted-foreground">
               <GitBranch className="w-3.5 h-3.5 text-primary" />
               <span className="truncate">structa.dev/explorer/facebook/react</span>
-              <span className="ml-auto text-[10px] uppercase font-semibold text-primary">v19.0.0</span>
+              <span className="ml-auto text-[10px] uppercase font-semibold text-primary">
+                v19.0.0
+              </span>
             </div>
 
             {/* Quick status badge */}
@@ -318,8 +320,8 @@ export function Hero() {
                   <Sparkles className="w-3 h-3" /> Grounded AST Summary
                 </div>
                 <p className="text-[#EDEFF3]/90 font-sans text-xs">
-                  Coordinates fiber traversal, work scheduling, and priority lanes. Dispatches render
-                  phases to host renderers.
+                  Coordinates fiber traversal, work scheduling, and priority lanes. Dispatches
+                  render phases to host renderers.
                 </p>
                 <div className="mt-2 pt-2 border-t border-[#1E2330] flex items-center justify-between font-mono text-[10px] text-[#7D8590]">
                   <span>AST: 1,842 LOC</span>

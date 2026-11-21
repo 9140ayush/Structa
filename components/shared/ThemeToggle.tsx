@@ -90,4 +90,3 @@ export function ThemeSegmentedControl({ className = "" }: { className?: string }
     </div>
   );
 }
-

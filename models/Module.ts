@@ -22,6 +22,8 @@ export interface IModule extends Document {
    * - skipped: folder, binary, or oversized file — summary not applicable
    */
   summaryStatus: SummaryStatus;
+  /** Error message if summary generation failed */
+  summaryError?: string;
   /** Lines of code (0 for folders) */
   loc: number;
   /** Heuristic complexity score 0..10 */
@@ -63,6 +65,10 @@ const ModuleSchema: Schema = new Schema<IModule>(
       type: String,
       enum: ["pending", "generating", "done", "failed", "skipped"],
       default: "pending",
+    },
+    summaryError: {
+      type: String,
+      default: "",
     },
     loc: {
       type: Number,

@@ -18,4 +18,3 @@ export const GRAPH_COLORS = {
 } as const;
 
 export type GraphColorKey = keyof typeof GRAPH_COLORS;
-

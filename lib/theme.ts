@@ -29,4 +29,3 @@ export const themeInitScript = `(function() {
     document.documentElement.style.colorScheme = 'dark';
   }
 })();`;
-

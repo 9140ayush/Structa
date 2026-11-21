@@ -52,7 +52,8 @@ const SATELLITE_VIEWS: ViewItem[] = [
     id: "2d-arch",
     name: "2D Architecture",
     category: "Visual",
-    description: "Hierarchical tiered layout separating entry points, core logic, and shared utilities.",
+    description:
+      "Hierarchical tiered layout separating entry points, core logic, and shared utilities.",
     icon: Layers,
     tag: "Tiers",
   },
@@ -159,7 +160,8 @@ export function PlatformRadialDiagram() {
         </h2>
         <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
           Every repository is parsed into a single, high-fidelity Abstract Syntax Tree. Structa then
-          projects that topology across 12 purpose-built analytical views for total codebase mastery.
+          projects that topology across 12 purpose-built analytical views for total codebase
+          mastery.
         </p>
       </div>
 
@@ -267,4 +269,3 @@ export function PlatformRadialDiagram() {
     </section>
   );
 }
-

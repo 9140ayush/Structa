@@ -21,6 +21,10 @@ export interface IPublicRepository extends Document {
   lastCommitShaAtIndex?: string;
   exploreCount: number;
   moduleSummaries?: Record<string, string>;
+  repoExplanation?: string;
+  repoExplanationBeginner?: string;
+  aiSummariesStatus?: "not_started" | "generating" | "completed" | "failed" | "partial";
+  aiSummariesError?: string;
   error?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -52,6 +56,14 @@ const PublicRepositorySchema = new Schema<IPublicRepository>(
     lastCommitShaAtIndex: { type: String, default: "" },
     exploreCount: { type: Number, default: 0 },
     moduleSummaries: { type: Schema.Types.Mixed, default: {} },
+    repoExplanation: { type: String, default: "" },
+    repoExplanationBeginner: { type: String, default: "" },
+    aiSummariesStatus: {
+      type: String,
+      enum: ["not_started", "generating", "completed", "failed", "partial"],
+      default: "not_started",
+    },
+    aiSummariesError: { type: String, default: "" },
     error: { type: String, default: "" },
   },
   {

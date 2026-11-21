@@ -80,7 +80,8 @@ export default function LandingPage() {
               Try It on Any Public GitHub Repository
             </h2>
             <p className="mt-3 text-muted-foreground text-sm sm:text-base">
-              Enter any repository URL or shorthand below to extract and visualize its Abstract Syntax Tree in real-time.
+              Enter any repository URL or shorthand below to extract and visualize its Abstract
+              Syntax Tree in real-time.
             </p>
           </div>
           <RepositorySearch />

@@ -14,6 +14,9 @@ export interface IRepository extends Document {
   /** Phase 11.5: Cached AI-generated repository explanation (beginner mode) */
   repoExplanationBeginner?: string;
   repoExplanationBeginnerAt?: Date;
+  /** AI summary generation lifecycle status */
+  aiSummariesStatus?: "not_started" | "generating" | "completed" | "failed" | "partial";
+  aiSummariesError?: string;
 }
 
 const RepositorySchema: Schema = new Schema<IRepository>({
@@ -29,6 +32,12 @@ const RepositorySchema: Schema = new Schema<IRepository>({
   repoExplanationAt: { type: Date },
   repoExplanationBeginner: { type: String, default: "" },
   repoExplanationBeginnerAt: { type: Date },
+  aiSummariesStatus: {
+    type: String,
+    enum: ["not_started", "generating", "completed", "failed", "partial"],
+    default: "not_started",
+  },
+  aiSummariesError: { type: String, default: "" },
 });
 
 export const Repository: Model<IRepository> =
