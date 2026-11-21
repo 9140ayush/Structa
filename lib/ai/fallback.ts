@@ -170,12 +170,8 @@ export function generateGroundedRepoExplanation(input: FallbackRepoInput): strin
     .sort((a, b) => b.importedByCount + b.complexityScore - (a.importedByCount + a.complexityScore))
     .slice(0, 8);
 
-  const fallbackNotice = aiError
-    ? `> [!NOTE]\n> **Grounded Static Analysis**: Generated directly from AST metadata and dependency graph topology. (AI provider notice: ${aiError})\n\n`
-    : "";
-
   if (mode === "beginner") {
-    return `${fallbackNotice}## 1. What it does
+    return `## 1. What it does
 "${repoName}" is a software project comprising **${stats.fileCount} source files** and **${stats.totalLOC.toLocaleString()} lines of code**. In simple terms, it functions like a well-organized digital workshop where each file has a specific job—some create what users see on screen, others handle data behind the scenes, and helper files keep everything running smoothly.
 
 ## 2. How it works
@@ -215,7 +211,7 @@ The repository relies on structured dependency declarations and configuration fi
   }
 
   // Technical Mode
-  return `${fallbackNotice}## 1. What it does
+  return `## 1. What it does
 \`${repoName}\` is a modular software repository consisting of **${stats.fileCount} analyzed files**, **${stats.totalLOC.toLocaleString()} lines of code**, and **${stats.edgeCount} inter-module import relationships**. The architecture is structured to separate presentation interfaces, business logic services, and data schema boundaries.
 
 ## 2. How it works

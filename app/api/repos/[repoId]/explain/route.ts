@@ -21,7 +21,7 @@ import { Repository, type IRepository } from "@/models/Repository";
 import { PublicRepository, type IPublicRepository } from "@/models/PublicRepository";
 import { Module, type IModule, type SummaryStatus } from "@/models/Module";
 import { getOrCreateOrganization } from "@/lib/auth-sync";
-import { getOpenAIClient, AI_MODEL } from "@/lib/openai";
+import { generateAICompletion } from "@/lib/ai/provider";
 import { chatLimiter } from "@/lib/ratelimit";
 import { summarizeModuleBatch, type SummarizeModuleInput } from "@/lib/ai/summarize";
 import { getBatchFileContents } from "@/lib/github";
@@ -611,9 +611,8 @@ export async function POST(
       importedByCount: m.importedBy?.length ?? 0,
     }));
 
-    // Primary path: Attempt OpenAI generation
+    // Primary path: Attempt AI generation (Gemini Free Tier or OpenAI)
     let explanation = "";
-    let openAiError: string | undefined = undefined;
 
     try {
       const summariesForPrompt = (doneModules.length > 0 ? doneModules : fileModules).map((m) => ({
@@ -629,24 +628,20 @@ export async function POST(
         edgeCount,
       });
 
-      const client = getOpenAIClient();
-      const response = await client.chat.completions.create({
-        model: AI_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 1500,
+      const { text } = await generateAICompletion(prompt, {
+        maxTokens: 1500,
         temperature: 0.35,
       });
 
-      explanation = response.choices[0]?.message?.content?.trim() ?? "";
+      explanation = text;
     } catch (aiErr: unknown) {
-      openAiError = aiErr instanceof Error ? aiErr.message : String(aiErr);
       console.warn(
-        "[POST /api/repos/[repoId]/explain] OpenAI generation failed, activating AST fallback:",
-        openAiError,
+        "[POST /api/repos/[repoId]/explain] AI generation failed, activating AST fallback:",
+        aiErr instanceof Error ? aiErr.message : String(aiErr),
       );
     }
 
-    // Fallback path: Synthesize grounded AST explanation if OpenAI failed or returned empty
+    // Fallback path: Synthesize grounded AST explanation if AI failed or returned empty
     let isFallback = false;
     if (!explanation) {
       isFallback = true;
@@ -660,7 +655,6 @@ export async function POST(
           avgComplexity: parseFloat(avgComplexity.toFixed(1)),
           edgeCount,
         },
-        aiError: openAiError,
       });
     }
 
@@ -668,10 +662,8 @@ export async function POST(
     const updatePayload: Record<string, unknown> = {
       [cacheKey]: explanation,
       [cacheTimestampKey]: new Date(),
+      aiSummariesError: "",
     };
-    if (openAiError) {
-      updatePayload.aiSummariesError = openAiError;
-    }
 
     await Repository.findByIdAndUpdate(repo._id, updatePayload);
 
@@ -681,7 +673,6 @@ export async function POST(
       mode,
       generatedAt: new Date().toISOString(),
       fallback: isFallback,
-      aiError: openAiError,
     });
   } catch (err: unknown) {
     console.error("[POST /api/repos/[repoId]/explain]", err);

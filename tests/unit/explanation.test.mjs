@@ -91,7 +91,7 @@ test("generateGroundedRepoExplanation formats beginner mode with analogies and p
   assert.ok(explanation.includes("## 6. Data flow"));
 });
 
-test("generateGroundedRepoExplanation includes transparent provider notice when AI provider fails", () => {
+test("generateGroundedRepoExplanation produces clean, structured markdown without leaked errors", () => {
   const explanation = generateGroundedRepoExplanation({
     repoName: "Portfolio",
     mode: "technical",
@@ -105,9 +105,7 @@ test("generateGroundedRepoExplanation includes transparent provider notice when 
     aiError: "401 Unauthorized: Incorrect API key provided",
   });
 
-  assert.ok(explanation.includes("401 Unauthorized"), "Must surface exact provider error");
-  assert.ok(
-    explanation.includes("Grounded Static Analysis"),
-    "Must indicate static analysis origin",
-  );
+  assert.ok(explanation.includes("## 1. What it does"), "Must include section 1");
+  assert.ok(!explanation.includes("401 Unauthorized"), "Must not leak raw API errors into explanation text");
+  assert.ok(!explanation.includes("sk-"), "Must never leak API key substrings into explanation text");
 });

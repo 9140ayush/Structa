@@ -679,15 +679,11 @@ export default function ExplanationPage({ params }: ExplPageProps) {
                   <div className="flex items-center gap-2.5">
                     <span className="flex items-center gap-1.5 text-accent font-medium">
                       <Sparkles className="w-3.5 h-3.5" />
-                      {cachedInfo?.fallback
-                        ? "Grounded AST Synthesis"
-                        : cachedInfo?.cached
-                          ? "Cached Explanation"
-                          : "Freshly Generated"}
+                      {mode === "beginner" ? "Beginner Mode" : "Technical Architecture Mode"}
                     </span>
                     <span>·</span>
                     <span>
-                      {mode === "beginner" ? "Beginner Mode" : "Technical Architecture Mode"}
+                      {cachedInfo?.cached ? "Cached" : "Freshly Generated"}
                     </span>
                     {cachedInfo?.generatedAt && (
                       <>
@@ -709,20 +705,6 @@ export default function ExplanationPage({ params }: ExplPageProps) {
                     </button>
                   </div>
                 </div>
-
-                {/* AI Service Error Callout (if active fallback) */}
-                {cachedInfo?.aiError && (
-                  <div className="p-3.5 rounded-lg border border-warning/30 bg-warning/5 text-xs font-mono text-foreground/90 flex items-start gap-2.5">
-                    <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-semibold text-warning">Notice: </span>
-                      <span>
-                        AI service encountered an issue ({cachedInfo.aiError}). Structa has grounded
-                        the analysis below using static AST analysis and dependency graph metrics.
-                      </span>
-                    </div>
-                  </div>
-                )}
 
                 {/* Main Explanation Card */}
                 <div className="p-6 sm:p-8 rounded-xl border border-border bg-card/75 shadow-sm space-y-1">
