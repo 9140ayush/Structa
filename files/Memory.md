@@ -45,6 +45,14 @@ This file is the single source of truth for **where things stand** — never for
   - Added clickable file pills navigating to 3D Graph, File Explorer, and Module Explorer.
   - Added comprehensive unit test coverage (`tests/unit/explanation.test.mjs`).
 
+- [x] **Repository Copilot & 3D Graph "Ask the Codebase" Chat Fix (OpenAI & Gemini Grounding)**:
+  - Repaired `/api/chat` streaming endpoint with OpenAI priority and Gemini fallback.
+  - Resolved model quota exhaustion by upgrading provider configuration to use `OPENAI_API_KEY` (`gpt-4o-mini`) primarily, with Gemini fallback.
+  - Implemented 3 context modes (Repository-Wide, Module-Focused, and File-Focused) end-to-end from Copilot UI down to the MongoDB module query and AI system prompt.
+  - Integrated 3D Graph selected node context into `ChatPanel` (node name, path, complexity, LOC, incoming/outgoing dependency counts, node summary) with visual banner and scoped prompt grounding.
+  - Improved in-stream error handling and user retry flow (dismiss error without reloading whole window).
+  - Maintained zero client secrets and full Zod input validation.
+
 ---
 
 ## Validation Results

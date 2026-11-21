@@ -25,7 +25,7 @@ import {
   Sparkles,
   Square,
 } from "lucide-react";
-import { useChatSession } from "@/hooks/use-chat-session";
+import { useChatSession, NodeContext } from "@/hooks/use-chat-session";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 
 // ---------------------------------------------------------------------------
@@ -37,6 +37,10 @@ interface ChatPanelProps {
   repoName: string;
   onCitationClick?: (modulePath: string) => void;
   onClose?: () => void;
+  contextMode?: "repository" | "module" | "file";
+  moduleId?: string;
+  filePath?: string;
+  nodeContext?: NodeContext;
 }
 
 // ---------------------------------------------------------------------------
@@ -55,7 +59,16 @@ const SUGGESTIONS = [
 // Component
 // ---------------------------------------------------------------------------
 
-export function ChatPanel({ repoId, repoName, onCitationClick, onClose }: ChatPanelProps) {
+export function ChatPanel({
+  repoId,
+  repoName,
+  onCitationClick,
+  onClose,
+  contextMode = "repository",
+  moduleId,
+  filePath,
+  nodeContext,
+}: ChatPanelProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,8 +76,8 @@ export function ChatPanel({ repoId, repoName, onCitationClick, onClose }: ChatPa
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  const { messages, input, isLoading, error, setInput, submit, stop, parseCitations } =
-    useChatSession({ repoId, onCitationClick });
+  const { messages, input, isLoading, error, setInput, submit, stop, clearError, parseCitations } =
+    useChatSession({ repoId, contextMode, moduleId, filePath, nodeContext, onCitationClick });
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -181,6 +194,17 @@ export function ChatPanel({ repoId, repoName, onCitationClick, onClose }: ChatPa
         </div>
       </div>
 
+      {/* Node context banner */}
+      {nodeContext && (
+        <div className="px-4 py-2 flex items-center gap-2 bg-accent/10 border-b border-accent/20 text-accent text-xs font-mono shrink-0">
+          <Sparkles className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">
+            Focused on:{" "}
+            <strong className="text-foreground">{nodeContext.nodePath}</strong>
+          </span>
+        </div>
+      )}
+
       {/* Export error */}
       {exportError && (
         <div className="px-4 py-2 flex items-center gap-2 bg-danger/10 border-b border-danger/20 text-danger text-xs font-mono">
@@ -280,8 +304,8 @@ export function ChatPanel({ repoId, repoName, onCitationClick, onClose }: ChatPa
           >
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span className="flex-1">{error}</span>
-            <button onClick={() => window.location.reload()}>
-              <RefreshCw className="w-3.5 h-3.5" />
+            <button onClick={clearError} title="Dismiss error" className="ml-auto shrink-0 hover:opacity-70 transition-opacity">
+              <X className="w-3.5 h-3.5" />
             </button>
           </motion.div>
         )}

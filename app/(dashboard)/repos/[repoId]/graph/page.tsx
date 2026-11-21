@@ -685,6 +685,21 @@ export default function GraphPage({ params }: GraphPageProps) {
                   setIsChatOpen(false);
                 }}
                 onClose={() => setIsChatOpen(false)}
+                nodeContext={
+                  selectedNode
+                    ? {
+                        nodeId: selectedNode.id,
+                        nodeName: selectedNode.path.split("/").pop() ?? selectedNode.path,
+                        nodePath: selectedNode.path,
+                        nodeKind: selectedNode.kind,
+                        nodeSummary: selectedNode.summary,
+                        importsCount: selectedNodeConnections.imports.length,
+                        importedByCount: selectedNodeConnections.importedBy.length,
+                        loc: selectedNode.loc,
+                        complexityScore: selectedNode.complexityScore,
+                      }
+                    : undefined
+                }
               />
             </motion.div>
           )}

@@ -20,16 +20,22 @@ let _openai: OpenAI | null = null;
 
 /**
  * Returns the shared OpenAI client.
- * Throws a clear error at call time (not import time) if the key is missing,
- * so development builds without a key fail with a readable message.
+ * Priority: OpenAI API key > Gemini (via OpenAI-compatible endpoint).
+ * Throws a clear error at call time (not import time) if no key is configured.
  */
 export function getOpenAIClient(): OpenAI {
   if (_openai) return _openai;
 
-  const geminiKey = process.env.GEMINI_API_KEY?.trim();
   const openAiKey = process.env.OPENAI_API_KEY?.trim();
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
 
-  // If Gemini API key is configured, use Google's free-tier OpenAI-compatible endpoint
+  // Prefer OpenAI when key is set (not a placeholder)
+  if (openAiKey && openAiKey.length > 10 && !openAiKey.includes("placeholder")) {
+    _openai = new OpenAI({ apiKey: openAiKey });
+    return _openai;
+  }
+
+  // Fall back to Gemini via OpenAI-compatible endpoint
   if (geminiKey && geminiKey.length > 5) {
     _openai = new OpenAI({
       apiKey: geminiKey,
@@ -38,13 +44,8 @@ export function getOpenAIClient(): OpenAI {
     return _openai;
   }
 
-  if (openAiKey) {
-    _openai = new OpenAI({ apiKey: openAiKey });
-    return _openai;
-  }
-
   throw new Error(
-    "[openai] Neither GEMINI_API_KEY nor OPENAI_API_KEY is set. Add GEMINI_API_KEY to .env.local (server-side only).",
+    "[openai] Neither OPENAI_API_KEY nor GEMINI_API_KEY is set. Add one to .env.local (server-side only).",
   );
 }
 
@@ -54,23 +55,35 @@ export function getOpenAIClient(): OpenAI {
 
 /** Get the configured AI model based on available provider credentials. */
 export function getAIModel(): string {
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
+  if (openAiKey && openAiKey.length > 10 && !openAiKey.includes("placeholder")) {
+    return process.env.OPENAI_MODEL || "gpt-4o-mini";
+  }
   const geminiKey = process.env.GEMINI_API_KEY?.trim();
   if (geminiKey && geminiKey.length > 5) {
-    return "gemini-2.5-flash";
+    return "gemini-2.5-flash-preview-05-20";
   }
   return "gpt-4o-mini";
 }
 
 /** The active AI model used for all Structa AI operations. */
-export const AI_MODEL = (process.env.GEMINI_API_KEY?.trim()
-  ? "gemini-2.5-flash"
-  : "gpt-4o-mini") as string;
+export const AI_MODEL = (() => {
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
+  if (openAiKey && openAiKey.length > 10 && !openAiKey.includes("placeholder")) {
+    return process.env.OPENAI_MODEL || "gpt-4o-mini";
+  }
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  if (geminiKey && geminiKey.length > 5) {
+    return "gemini-2.5-flash-preview-05-20";
+  }
+  return "gpt-4o-mini";
+})() as string;
 
 /** Maximum tokens for module summaries (keeps cost low, ~200 words). */
 export const SUMMARY_MAX_TOKENS = 256 as const;
 
 /** Maximum tokens for chat responses. */
-export const CHAT_MAX_TOKENS = 1024 as const;
+export const CHAT_MAX_TOKENS = 2048 as const;
 
 /** Request timeout in milliseconds. */
 export const AI_TIMEOUT_MS = 60_000 as const;

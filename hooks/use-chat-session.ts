@@ -26,12 +26,28 @@ export interface ParsedCitation {
   marker: string;
 }
 
+export interface NodeContext {
+  nodeId: string;
+  nodeName: string;
+  nodePath: string;
+  nodeKind: string;
+  nodeSummary?: string;
+  importsCount?: number;
+  importedByCount?: number;
+  loc?: number;
+  complexityScore?: number;
+}
+
 // ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
 
 interface UseChatSessionOptions {
   repoId: string;
+  contextMode?: "repository" | "module" | "file";
+  moduleId?: string;
+  filePath?: string;
+  nodeContext?: NodeContext;
   onCitationClick?: (modulePath: string) => void;
 }
 
@@ -43,6 +59,7 @@ interface UseChatSessionReturn {
   setInput: (value: string) => void;
   submit: (overrideInput?: string) => Promise<void>;
   stop: () => void;
+  clearError: () => void;
   parseCitations: (text: string) => ParsedCitation[];
 }
 
@@ -51,7 +68,13 @@ function newId() {
   return `msg-${++msgCounter}-${Date.now()}`;
 }
 
-export function useChatSession({ repoId }: UseChatSessionOptions): UseChatSessionReturn {
+export function useChatSession({
+  repoId,
+  contextMode = "repository",
+  moduleId,
+  filePath,
+  nodeContext,
+}: UseChatSessionOptions): UseChatSessionReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +83,10 @@ export function useChatSession({ repoId }: UseChatSessionOptions): UseChatSessio
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
+  }, []);
+
+  const clearError = useCallback(() => {
+    setError(null);
   }, []);
 
   const submit = useCallback(
@@ -97,7 +124,14 @@ export function useChatSession({ repoId }: UseChatSessionOptions): UseChatSessio
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ repoId, messages: historyForApi }),
+          body: JSON.stringify({
+            repoId,
+            messages: historyForApi,
+            contextMode,
+            moduleId,
+            filePath,
+            nodeContext,
+          }),
           signal: controller.signal,
         });
 
@@ -135,7 +169,7 @@ export function useChatSession({ repoId }: UseChatSessionOptions): UseChatSessio
         abortRef.current = null;
       }
     },
-    [input, isLoading, messages, repoId],
+    [input, isLoading, messages, repoId, contextMode, moduleId, filePath, nodeContext],
   );
 
   /** Parse [[path:...]] citation markers from an AI response */
@@ -155,6 +189,7 @@ export function useChatSession({ repoId }: UseChatSessionOptions): UseChatSessio
     setInput,
     submit,
     stop,
+    clearError,
     parseCitations,
   };
 }

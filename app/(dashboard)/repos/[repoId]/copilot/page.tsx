@@ -104,7 +104,12 @@ export default function RepositoryCopilotPage({ params }: CopilotPageProps) {
 
       {/* Embedded Full Panel */}
       <div className="flex-1 min-h-0">
-        <ChatPanel repoId={repoId} repoName={repoName} onCitationClick={handleCitationClick} />
+        <ChatPanel
+          repoId={repoId}
+          repoName={repoName}
+          onCitationClick={handleCitationClick}
+          contextMode={contextMode}
+        />
       </div>
     </div>
   );
