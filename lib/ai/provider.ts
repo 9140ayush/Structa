@@ -26,58 +26,55 @@ async function callGemini(
   prompt: string,
   options: AICompletionOptions = {},
 ): Promise<string> {
-  const timeoutMs = options.timeoutMs ?? 20_000;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutMs = options.timeoutMs ?? 60_000;
+  const candidateModels = ["gemini-2.5-flash", "gemini-3.5-flash"];
+  let lastError: Error | null = null;
 
-  try {
-    const candidateModels = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash"];
-    let lastError: Error | null = null;
+  for (const model of candidateModels) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    for (const model of candidateModels) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: prompt }],
-              },
-            ],
-            generationConfig: {
-              temperature: options.temperature ?? 0.35,
-              maxOutputTokens: options.maxTokens ?? 1500,
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: prompt }],
             },
-          }),
-          signal: controller.signal,
-        });
+          ],
+          generationConfig: {
+            temperature: options.temperature ?? 0.35,
+            maxOutputTokens: options.maxTokens ?? 1500,
+          },
+        }),
+        signal: controller.signal,
+      });
 
-        if (!res.ok) {
-          const errText = await res.text();
-          lastError = new Error(`Gemini API error (${res.status}): ${errText}`);
-          continue;
-        }
-
-        const data = await res.json();
-        const candidate = data.candidates?.[0];
-        const text = candidate?.content?.parts?.[0]?.text;
-
-        if (text && typeof text === "string") {
-          return text.trim();
-        }
-      } catch (err) {
-        lastError = err instanceof Error ? err : new Error(String(err));
-        if (controller.signal.aborted) break;
+      if (!res.ok) {
+        const errText = await res.text();
+        lastError = new Error(`Gemini API error (${res.status}): ${errText}`);
+        continue;
       }
-    }
 
-    throw lastError || new Error("Gemini returned empty response content.");
-  } finally {
-    clearTimeout(timeoutId);
+      const data = await res.json();
+      const candidate = data.candidates?.[0];
+      const text = candidate?.content?.parts?.[0]?.text;
+
+      if (text && typeof text === "string") {
+        return text.trim();
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
+
+  throw lastError || new Error("Gemini returned empty response content.");
 }
 
 /**

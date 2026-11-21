@@ -73,4 +73,4 @@ export const SUMMARY_MAX_TOKENS = 256 as const;
 export const CHAT_MAX_TOKENS = 1024 as const;
 
 /** Request timeout in milliseconds. */
-export const AI_TIMEOUT_MS = 20_000 as const;
+export const AI_TIMEOUT_MS = 60_000 as const;
