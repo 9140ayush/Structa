@@ -27,7 +27,12 @@ async function callGemini(
   options: AICompletionOptions = {},
 ): Promise<string> {
   const timeoutMs = options.timeoutMs ?? 60_000;
-  const candidateModels = ["gemini-2.5-flash", "gemini-3.5-flash"];
+  const candidateModels = [
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-2.5-flash-lite",
+    "gemini-flash-latest",
+  ];
   let lastError: Error | null = null;
 
   for (const model of candidateModels) {
@@ -48,7 +53,7 @@ async function callGemini(
           ],
           generationConfig: {
             temperature: options.temperature ?? 0.35,
-            maxOutputTokens: options.maxTokens ?? 1500,
+            maxOutputTokens: options.maxTokens ?? 8192,
           },
         }),
         signal: controller.signal,

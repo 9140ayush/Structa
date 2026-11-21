@@ -171,78 +171,94 @@ export function generateGroundedRepoExplanation(input: FallbackRepoInput): strin
     .slice(0, 8);
 
   if (mode === "beginner") {
-    return `## 1. What it does
-"${repoName}" is a software project comprising **${stats.fileCount} source files** and **${stats.totalLOC.toLocaleString()} lines of code**. In simple terms, it functions like a well-organized digital workshop where each file has a specific job—some create what users see on screen, others handle data behind the scenes, and helper files keep everything running smoothly.
+    return `## 1. What it does (The Big Picture)
+"${repoName}" is a modern web application codebase consisting of **${stats.fileCount} source files** and **${stats.totalLOC.toLocaleString()} total lines of code**. In everyday terms, it is designed like a well-crafted digital platform where every file has a dedicated role—presenting screens to visitors, managing interactive features, and handling information behind the scenes without confusion.
 
-## 2. How it works
-Think of this project like a restaurant:
-- **The Dining Room (Frontend / Views)**: Files that build pages and show information to the user.
-- **The Waitstaff (APIs & Routes)**: Routes that take requests from the page and deliver answers back.
-- **The Kitchen (Core Logic & Services)**: Utility modules where complex calculations and business rules are executed.
-- **The Pantry (Data Models & Storage)**: Where records, data structures, and state are defined and stored.
+The repository's structure is organized so that visual elements (pages and user interface components) are separated from the internal machinery (data structures and helper functions). This allows new features to be added cleanly without breaking existing components.
 
-With an average complexity rating of **${stats.avgComplexity}/10** across **${stats.edgeCount} connection links**, the system is structured into clear, manageable compartments.
+## 2. How it works (The Blueprint Analogy)
+To understand how the pieces cooperate, imagine this application like an interactive restaurant or workshop:
+- **The Dining Room (Pages & Visual Components)**: What visitors see on screen. When someone clicks a link or button, visual components display the response.
+- **The Waitstaff (Routes & Request Handlers)**: Acts as the messenger between what the user clicks on screen and the engine room behind the scenes.
+- **The Kitchen (Core Logic & Services)**: Performs the calculations, data transformations, and heavy lifting.
+- **The Pantry (Data Models & Schemas)**: Keeps records, state, and data organized in a standardized layout.
 
-## 3. Key components
-The most central modules that other parts of the project rely on include:
+With an average module complexity rating of **${stats.avgComplexity}/10** across **${stats.edgeCount} connection links**, the system maintains a clean and modular separation of responsibilities.
+
+## 3. Key components (Meet the Modules)
+The most essential files that keep the project running and are relied upon by other modules include:
 ${keyComponents
-  .slice(0, 5)
+  .slice(0, 6)
   .map(
     (m) =>
-      `- **${m.path.split("/").pop()}** (\`${m.path}\`): A core building block used by ${m.importedByCount} other file${m.importedByCount === 1 ? "" : "s"} (${m.loc} lines).`,
+      `- **${m.path.split("/").pop()}** (\`${m.path}\`): A core module implemented in ${m.loc} lines of code. It connects to ${m.importedByCount} other file${m.importedByCount === 1 ? "" : "s"} and manages foundational application capabilities.`,
   )
   .join("\n")}
 
-## 4. Entry points
-When someone opens or runs the application, execution starts at key entry doors:
+## 4. Entry points (The Front Doors)
+When someone accesses the application, execution starts at primary entry doorways that prepare the user interface:
 ${entryPoints
-  .slice(0, 4)
-  .map((m) => `- **${m.path}**: Serves as a primary interface or navigation entry point.`)
+  .slice(0, 5)
+  .map((m) => `- **\`${m.path}\`**: Functions as a primary route or layout entry point that initializes the view.`)
   .join("\n")}
 
-## 5. External integrations
-The repository relies on structured dependency declarations and configuration files (\`package.json\`, config files) to connect external libraries, framework features, and external services with its custom internal code.
+## 5. External integrations (Helpers & Tools)
+The application relies on declared external dependencies defined in configuration files (\`package.json\`, config files) to provide specialized capabilities:
+- **Styling & Presentation**: Manages colors, typography, and responsive layouts across screen sizes.
+- **Runtime Framework**: Provides modern routing, server-side capabilities, and fast interactive page updates.
+- **Utility Libraries**: Provide helpers for data validation, animations, and icons.
 
-## 6. Data flow
-1. **User Interaction**: Actions begin at the view entry points.
-2. **Request Routing**: Requests travel to internal services and API handlers.
-3. **Processing**: Core logic modules process the data according to the project's rules.
-4. **Presentation**: The resulting state or data is reflected back to the user interface.`;
+## 6. Data flow (The User's Journey)
+Here is what happens step-by-step when someone interacts with the application:
+1. **Initial Visit**: The visitor requests a URL, and the entry layout (\`${entryPoints[0]?.path ?? "app/page.tsx"}\`) loads the foundation of the page.
+2. **Component Assembly**: Modular view components render the navigation, content sections, and interactive controls.
+3. **User Action**: The visitor clicks, scrolls, or inputs information, triggering event handlers.
+4. **Processing**: Helper utilities and services calculate the required updates or fetch relevant data.
+5. **Screen Update**: The application updates the view smoothly to reflect the result of the user's action.`;
   }
 
   // Technical Mode
-  return `## 1. What it does
-\`${repoName}\` is a modular software repository consisting of **${stats.fileCount} analyzed files**, **${stats.totalLOC.toLocaleString()} lines of code**, and **${stats.edgeCount} inter-module import relationships**. The architecture is structured to separate presentation interfaces, business logic services, and data schema boundaries.
+  return `## 1. What it does & Architectural Scope
+\`${repoName}\` is a modular software application comprising **${stats.fileCount} analyzed source files**, **${stats.totalLOC.toLocaleString()} lines of code (LOC)**, and **${stats.edgeCount} inter-module dependency relationships**. The architecture is structured with clear segregation between presentation layers, business logic utilities, and data contract definitions.
 
-## 2. How it works
-The repository utilizes a modular architectural model with an average module complexity of **${stats.avgComplexity}/10**:
-- **Presentation Layer**: Client pages and view components managing visual state and interactions.
-- **Routing & Controller Layer**: Request endpoints handling input validation, routing, and dispatching.
-- **Domain & Service Layer**: Specialized internal libraries orchestrating data transformations and business rules.
-- **Schema & Data Layer**: Persistence models establishing domain entity definitions and storage contracts.
+The codebase exhibits a mean complexity score of **${stats.avgComplexity}/10**, reflecting a balanced distribution between lightweight declarative components and concentrated domain logic modules.
 
-## 3. Key components
-High-centrality modules identified by dependency connectivity and structural complexity:
+## 2. How it works — Architecture & Design Patterns
+The repository follows a modern component-driven architectural model:
+- **Presentation Layer**: Client views and UI primitives encapsulate visual presentation, layout hierarchies, and user interaction states.
+- **Routing & Controller Layer**: Request endpoints and page routers manage route transitions, parameter validation, and lifecycle hooks.
+- **Domain & Service Layer**: Specialized utility libraries handle deterministic computation, data formatting, and business rule orchestration.
+- **Schema & Data Layer**: Persistence models and type definitions enforce compile-time safety and domain integrity.
+
+Module coupling is kept manageable by channeling inter-module communication through structured import contracts, preventing circular dependencies across architectural tiers.
+
+## 3. Key components & Subsystems
+High-centrality modules identified through topological analysis (in-degree connectivity and structural complexity):
 ${keyComponents
   .map(
     (m) =>
-      `- **\`${m.path}\`**: ${m.loc} LOC | Complexity score: ${m.complexityScore}/10 | In-degree (imported by): ${m.importedByCount} | Out-degree (imports): ${m.importsCount}.`,
+      `- **\`${m.path}\`**: ${m.loc} LOC | Complexity score: ${m.complexityScore}/10 | In-degree (imported by): ${m.importedByCount} | Out-degree (imports): ${m.importsCount}. Acts as a high-centrality building block within the dependency graph.`,
   )
   .join("\n")}
 
-## 4. Entry points
-Key application lifecycles and request routing initiate from:
+## 4. Entry points & Execution Lifecycles
+Application bootstrap and request lifecycles initiate through designated root entry points:
 ${entryPoints
   .slice(0, 5)
-  .map((m) => `- **\`${m.path}\`**: Root route / page entry point (${m.loc} LOC).`)
+  .map((m) => `- **\`${m.path}\`**: Root lifecycle entry point (${m.loc} LOC) responsible for route initialization and layout scaffolding.`)
   .join("\n")}
 
-## 5. External integrations
-The module import graph interfaces with external ecosystem packages defined in project configuration manifests. Inter-module boundaries maintain clean separation between internal utilities and third-party dependencies.
+## 5. External integrations & Contracts
+The repository interfaces with third-party ecosystem dependencies defined in the project manifest (\`package.json\`):
+- **Framework & Runtime**: Handles route dispatching, server/client boundary segregation, and build-time optimization.
+- **UI & Design Engine**: Implements utility-first styling and theme token bindings across light and dark modes.
+- **Type Safety & Contracts**: Static typing boundaries prevent runtime contract violations between interconnected subsystems.
 
-## 6. Data flow
-1. **Entry Ingestion**: Invocations arrive via designated route and view entry points.
-2. **Dependency Resolution**: Request handlers delegate computation to core library utilities (\`${keyComponents[0]?.path ?? "lib"}\`).
-3. **Data Transformation**: Domain services execute deterministic operations across dependency nodes.
-4. **State / Response Delivery**: Processed payloads are returned upstream to view components and external consumers.`;
+## 6. Data flow & End-to-End Lifecycles
+A representative transaction executes through the following sequence:
+1. **Request Ingestion**: Invocations arrive at designated route or view entry points (\`${entryPoints[0]?.path ?? "entry"}\`).
+2. **Context & State Setup**: Root layouts and providers establish the operational context and reactive state bindings.
+3. **Subsystem Delegation**: View components delegate computation to central utility modules (\`${keyComponents[0]?.path ?? "lib"}\`).
+4. **Transformation & Processing**: Domain services execute deterministic operations across dependencies.
+5. **DOM Reconciliation / Response**: Processed outputs are rendered into view state and presented to the client.`;
 }

@@ -136,7 +136,7 @@ async function resolveRepo(
 }
 
 /**
- * Builds OpenAI structured prompt for repository explanation.
+ * Builds structured prompt for repository explanation tailored to Technical vs Beginner mode.
  */
 function buildExplainPrompt(
   repoName: string,
@@ -150,38 +150,88 @@ function buildExplainPrompt(
   },
 ): string {
   const summaryBlock = summaries
-    .slice(0, 35)
+    .slice(0, 45)
     .map((s) => `- ${s.path}: ${s.summary}`)
     .join("\n");
 
-  const audienceNote =
-    mode === "beginner"
-      ? "Explain as if to someone who is not familiar with software development. Use plain language. Avoid jargon. Use clear everyday analogies where helpful."
-      : "Explain technically for an experienced software engineer. Use precise terminology, architectural concepts, and reference concrete module relationships.";
+  if (mode === "beginner") {
+    return `You are an expert software mentor explaining the code repository "${repoName}" to a beginner, product manager, or junior engineer who wants a clear, intuitive mental model of the project.
 
-  return `You are analyzing a software repository named "${repoName}".
-
-Repository statistics:
-- ${stats.fileCount} files analyzed
+Repository Statistics:
+- ${stats.fileCount} source files analyzed
 - ${stats.totalLOC.toLocaleString()} total lines of code
-- ${stats.edgeCount} import dependencies
-- Average complexity score: ${stats.avgComplexity}/10
+- ${stats.edgeCount} inter-module connections
+- Average complexity rating: ${stats.avgComplexity}/10
 
-Module summaries (derived from code analysis):
+Module summaries derived from code analysis:
 ${summaryBlock}
 
-${audienceNote}
+Instructions:
+- Write an engaging, thorough, and highly educational explanation.
+- DO NOT give a superficial 2-sentence summary. Each of the 6 sections must contain multiple well-developed paragraphs.
+- Use a clear, consistent real-world analogy (such as a modern restaurant, digital workshop, or theatre production) to explain how the code works behind the scenes.
+- Explain technical terms (like APIs, state, components, routes) in everyday language.
+- Mention specific files in backticks (e.g. \`app/page.tsx\`) so the reader can connect the concept to the real codebase.
 
-Please write a structured explanation of this repository covering:
+Structure your response with these exact bold section headers:
 
-1. **What it does** — The primary purpose and user-facing value of this project.
-2. **How it works** — The main architectural approach (e.g. Next.js App Router, MVC, service-oriented, monorepo, etc.).
-3. **Key components** — The most important modules or layers and their roles.
-4. **Entry points** — Where execution begins (e.g. main files, API routes, page components).
-5. **External integrations** — Third-party services, databases, or APIs it connects to.
-6. **Data flow** — How data moves through the system at a high level.
+## 1. What it does (The Big Picture)
+Explain the user-facing purpose of this repository in depth. What problem does it solve? Who is it built for? What does someone see and experience when using the live application?
 
-Format your response in clear sections with bold headers (## 1. What it does, etc.). Reference specific files or paths from the summaries where relevant. If you cannot confidently answer a section from the available data, provide a grounded assessment and avoid unsupported assumptions.`;
+## 2. How it works (The Blueprint Analogy)
+Use an everyday analogy (e.g. front-of-house vs. back-of-house in a restaurant) to explain the overall architecture. How do the user interface, backend routes, and data helpers divide the work and collaborate?
+
+## 3. Key building blocks (Meet the Modules)
+Walk through the most critical parts of the codebase. Describe 4 to 6 important files or directories like members of a team, explaining what each one does in plain, accessible language.
+
+## 4. Entry points (The Front Doors)
+Explain where execution begins when someone visits or opens the project. Which files get loaded first, and what preparations do they make before displaying anything on screen?
+
+## 5. Outside connections (Helpers & Tools)
+Explain third-party libraries, styling engines, databases, or external services this project connects with. Compare each external tool to a familiar real-world helper (e.g. "Tailwind is like the painter's toolkit...").
+
+## 6. The User's Journey (Step-by-Step Flow)
+Provide a clear, numbered step-by-step walkthrough of what happens when a user performs a key action (such as loading the page, clicking a button, or submitting information), showing how the message travels through the code from front to back.`;
+  }
+
+  // Technical Mode (Experienced engineers / architects)
+  return `You are a Principal Software Architect conducting an in-depth codebase orientation and architectural teardown for "${repoName}".
+
+Repository Metrics & Dependency Graph Topology:
+- Analyzed Files: ${stats.fileCount}
+- Total Lines of Code (LOC): ${stats.totalLOC.toLocaleString()}
+- Inter-Module Import Edges: ${stats.edgeCount}
+- Mean Structural Complexity: ${stats.avgComplexity}/10
+
+Extracted Module Summaries & AST Metadata:
+${summaryBlock}
+
+Instructions:
+- Write a comprehensive, rigorous, senior-level architectural analysis.
+- DO NOT provide brief, high-level summaries. Each section must provide deep multi-paragraph technical substance, concrete code insights, and design rationale.
+- Cite specific file paths in backticks (e.g. \`path/to/module.ts\`) for every component, pattern, or dependency mentioned.
+- Explicitly analyze architectural paradigms (e.g. Next.js App Router, SSR vs. Client Component boundaries, data fetching, state management, caching strategies, and API contracts).
+- Address coupling, cohesion, complexity hotspots, and architectural trade-offs based on the metrics.
+
+Structure your response with these exact bold section headers:
+
+## 1. What it does & Architectural Scope
+Comprehensive breakdown of the application domain, target user personas, functional boundaries, and core operational responsibilities. Contextualize the size (${stats.fileCount} files, ${stats.totalLOC.toLocaleString()} LOC) and structural scope of the implementation.
+
+## 2. Architecture & Design Patterns
+Analyze the overarching architectural paradigm (e.g., Next.js App Router, modular monolith, client-server segregation). Discuss design patterns, separation of concerns, how client and server environments interface, and how coupling is managed across the dependency graph.
+
+## 3. Key Components & Subsystems
+Detailed breakdown of the primary subsystems and highest-centrality modules. For each key module, analyze its structural role, internal logic, LOC, complexity score, and dependencies.
+
+## 4. Execution Lifecycles & Entry Points
+Trace the root execution pathways: initial HTTP requests, SSR hydration lifecycles, route handlers, layout bootstrapping, and interactive event dispatching. Detail the exact entry files and how runtime control flows from bootstrap to active state.
+
+## 5. Integrations & External Contracts
+Analyze all external integrations, database layers, third-party APIs, authentication providers, and cloud runtime assumptions. Explain how external boundaries are encapsulated or abstracted within internal utilities.
+
+## 6. End-to-End Data Flow & Lifecycle
+Provide a numbered, step-by-step tracing of an end-to-end data transaction (e.g., Client User Event -> View Dispatch -> Route Handler / Service Layer -> External API / Persistence -> Response Serialization -> Reactive View Update).`;
 }
 
 /**
@@ -629,7 +679,7 @@ export async function POST(
       });
 
       const { text } = await generateAICompletion(prompt, {
-        maxTokens: 1500,
+        maxTokens: 8192,
         temperature: 0.35,
       });
 

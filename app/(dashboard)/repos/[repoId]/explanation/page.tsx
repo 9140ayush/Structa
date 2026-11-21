@@ -110,7 +110,25 @@ function renderExplanation(text: string, repoId: string): React.ReactNode[] {
     const trimmed = rawLine.trim();
 
     if (!trimmed) {
-      nodes.push(<div key={key++} className="h-3" />);
+      nodes.push(<div key={key++} className="h-2.5" />);
+    } else if (trimmed === "---" || trimmed === "***") {
+      nodes.push(<hr key={key++} className="my-5 border-border/50" />);
+    } else if (trimmed.startsWith("```")) {
+      // Code block
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i]!.trim().startsWith("```")) {
+        codeLines.push(lines[i]!);
+        i++;
+      }
+      nodes.push(
+        <pre
+          key={key++}
+          className="my-3 p-3.5 rounded-lg bg-secondary/70 border border-border/60 font-mono text-xs overflow-x-auto text-foreground/90 leading-relaxed"
+        >
+          <code>{codeLines.join("\n")}</code>
+        </pre>,
+      );
     } else if (trimmed.startsWith("> [!NOTE]")) {
       // Alert block note
       const alertLines: string[] = [];
@@ -132,6 +150,25 @@ function renderExplanation(text: string, repoId: string): React.ReactNode[] {
           <p className="leading-relaxed">{alertLines.join(" ")}</p>
         </div>,
       );
+    } else if (trimmed.startsWith("> ")) {
+      // Standard blockquote
+      nodes.push(
+        <blockquote
+          key={key++}
+          className="my-2.5 pl-3.5 border-l-2 border-accent/40 italic text-muted-foreground text-sm leading-relaxed"
+        >
+          {renderInlineWithFileLinks(trimmed.slice(2), repoId)}
+        </blockquote>,
+      );
+    } else if (trimmed.startsWith("# ")) {
+      nodes.push(
+        <h1
+          key={key++}
+          className="font-heading font-extrabold text-lg text-foreground mt-7 mb-3 pb-1.5 border-b border-border/50"
+        >
+          {trimmed.slice(2)}
+        </h1>,
+      );
     } else if (trimmed.startsWith("## ")) {
       nodes.push(
         <h2
@@ -147,7 +184,32 @@ function renderExplanation(text: string, repoId: string): React.ReactNode[] {
           {trimmed.slice(4)}
         </h3>,
       );
-    } else if (trimmed.startsWith("- ")) {
+    } else if (trimmed.startsWith("#### ")) {
+      nodes.push(
+        <h4
+          key={key++}
+          className="font-heading font-medium text-xs uppercase tracking-wider text-muted-foreground mt-3 mb-1"
+        >
+          {trimmed.slice(5)}
+        </h4>,
+      );
+    } else if (/^\d+\.\s+/.test(trimmed)) {
+      // Numbered list item: "1. Item text"
+      const match = trimmed.match(/^(\d+)\.\s+(.*)$/);
+      if (match) {
+        const [, num, body] = match;
+        nodes.push(
+          <div key={key++} className="flex items-start gap-2.5 my-1.5 pl-0.5">
+            <span className="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-accent/15 text-accent text-xs font-bold font-mono">
+              {num}
+            </span>
+            <div className="font-sans text-sm text-foreground/90 leading-relaxed pt-0.5">
+              {renderInlineWithFileLinks(body || "", repoId)}
+            </div>
+          </div>,
+        );
+      }
+    } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
       nodes.push(
         <li
           key={key++}
