@@ -26,21 +26,45 @@ let _openai: OpenAI | null = null;
 export function getOpenAIClient(): OpenAI {
   if (_openai) return _openai;
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error("[openai] OPENAI_API_KEY is not set. Add it to .env.local (server-side only).");
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
+
+  // If Gemini API key is configured, use Google's free-tier OpenAI-compatible endpoint
+  if (geminiKey && geminiKey.length > 5) {
+    _openai = new OpenAI({
+      apiKey: geminiKey,
+      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+    });
+    return _openai;
   }
 
-  _openai = new OpenAI({ apiKey });
-  return _openai;
+  if (openAiKey) {
+    _openai = new OpenAI({ apiKey: openAiKey });
+    return _openai;
+  }
+
+  throw new Error(
+    "[openai] Neither GEMINI_API_KEY nor OPENAI_API_KEY is set. Add GEMINI_API_KEY to .env.local (server-side only).",
+  );
 }
 
 // ---------------------------------------------------------------------------
 // Model configuration
 // ---------------------------------------------------------------------------
 
-/** The OpenAI model used for all Structa AI operations. */
-export const AI_MODEL = "gpt-4o-mini" as const;
+/** Get the configured AI model based on available provider credentials. */
+export function getAIModel(): string {
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  if (geminiKey && geminiKey.length > 5) {
+    return "gemini-2.5-flash";
+  }
+  return "gpt-4o-mini";
+}
+
+/** The active AI model used for all Structa AI operations. */
+export const AI_MODEL = (process.env.GEMINI_API_KEY?.trim()
+  ? "gemini-2.5-flash"
+  : "gpt-4o-mini") as string;
 
 /** Maximum tokens for module summaries (keeps cost low, ~200 words). */
 export const SUMMARY_MAX_TOKENS = 256 as const;

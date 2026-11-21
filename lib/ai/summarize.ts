@@ -15,7 +15,8 @@
 
 "use server";
 
-import { getOpenAIClient, AI_MODEL, SUMMARY_MAX_TOKENS, AI_TIMEOUT_MS } from "@/lib/openai";
+import { SUMMARY_MAX_TOKENS, AI_TIMEOUT_MS } from "@/lib/openai";
+import { generateAICompletion } from "@/lib/ai/provider";
 import type { SummaryStatus } from "@/models/Module";
 
 // ---------------------------------------------------------------------------
@@ -94,32 +95,24 @@ export async function summarizeModule(input: SummarizeModuleInput): Promise<Summ
   const timeoutHandle = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
 
   try {
-    const client = getOpenAIClient();
+    const { text } = await generateAICompletion(prompt, {
+      maxTokens: SUMMARY_MAX_TOKENS,
+      temperature: 0.3,
+      timeoutMs: AI_TIMEOUT_MS,
+    });
 
-    const response = await client.chat.completions.create(
-      {
-        model: AI_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: SUMMARY_MAX_TOKENS,
-        temperature: 0.3,
-      },
-      { signal: controller.signal },
-    );
-
-    const summary = response.choices[0]?.message?.content?.trim() ?? "";
-
-    if (!summary) {
-      return { summary: "", status: "failed", error: "OpenAI returned empty summary." };
+    if (!text) {
+      return { summary: "", status: "failed", error: "AI returned empty summary." };
     }
 
-    return { summary, status: "done" };
+    return { summary: text, status: "done" };
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : String(err);
 
     // Distinguish timeout from other errors for better logging
     if (controller.signal.aborted) {
       console.warn(`[summarize] Timeout summarizing ${input.path}`);
-      return { summary: "", status: "failed", error: "OpenAI request timed out." };
+      return { summary: "", status: "failed", error: "AI request timed out." };
     }
 
     console.warn(`[summarize] Failed to summarize ${input.path}:`, errorMessage);
