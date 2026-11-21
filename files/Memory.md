@@ -41,6 +41,7 @@ This file is the single source of truth for **where things stand** — never for
   - Implemented on-demand module summary generation without requiring full git tree re-sync.
   - Developed AST-grounded fallback synthesizer (`lib/ai/fallback.ts`) guaranteeing zero hallucinations and graceful degradation on AI provider failure.
   - Redesigned `/repos/[repoId]/explanation` with dual modes (Technical vs Beginner) and dual views (Architecture Overview vs Module Navigator).
+  - Added Google Gemini Free Tier support (`gemini-2.5-flash` / `gemini-flash-latest`) via `GEMINI_API_KEY` for explanations and chat.
   - Added clickable file pills navigating to 3D Graph, File Explorer, and Module Explorer.
   - Added comprehensive unit test coverage (`tests/unit/explanation.test.mjs`).
 
